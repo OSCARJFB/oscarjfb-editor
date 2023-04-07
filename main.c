@@ -55,33 +55,16 @@ int getFileSize(FILE *FP)
 	return bufferSize;
 }
 
-/** 
- *	If the buffer pointer is NULL, allocateBuffer  will set an initial size to the buffer.
- * 	Else it will increament the file size with a 1000 bytes and reallocate the buffer into the sum of the new size. 
- */ 
-int allocateBuffer(char **buffer, int fileSize)
+char *allocateBuffer(char *buffer, int fileSize)
 {
-	const int BUFF_INC = 1000;
-
+	buffer = malloc(fileSize);
 	if (buffer == NULL)
 	{
-		(*buffer) = malloc(fileSize += BUFF_INC);
-		if ((*buffer) == NULL)
-		{
-			puts("allocateBuffer: malloc() error");
-			return -1;
-		}
-		return fileSize;
-	}
-	
-	(*buffer) = realloc((*buffer), (fileSize += BUFF_INC)); 
-	if ((*buffer) == NULL)
-	{
 		puts("allocateBuffer: malloc() error");
-		return -1;
+		return NULL;
 	}
 
-	return fileSize; 
+	return buffer;
 }
 
 void freeBuffer(char *buffer)
@@ -102,10 +85,64 @@ void loadBuffer(char *buffer, FILE *FP, long fileSize)
 	while(fread(buffer, fileSize, 1, FP) > 0);
 }
 
-void saveBufferToFile(const char *fileName)
+typedef struct bufList
 {
+	char character; 
+	int isEdit; 
+	struct bufList *next; 
+	struct bufList *prev;  
+} bufList; 
 
+void addBufferToList(char character, bufList **head)
+{
+	if((*head) == NULL)
+	{
+		(*head) = malloc(sizeof(bufList));
+		if((*head) == NULL)
+		{
+			puts("addBufferToList: malloc(), couldn't allocate memory for node");
+		} 
+
+		(*head)->character = character; 
+		(*head)->isEdit = 0; 
+		(*head)->next = NULL; 
+		(*head)->prev = NULL; 	
+
+		return; 
+	}
+
+	bufList *n_head = malloc(sizeof(bufList));
+	if((n_head) == NULL)
+	{
+		puts("addBufferToList: malloc(), couldn't allocate memory for node");
+	} 
+
+	n_head->character = character; 
+	n_head->isEdit = 0; 
+	n_head->next = NULL; 
+	n_head->prev = NULL; 	
+
+	while((*head) != NULL)
+	{
+		(*head) = (*head)->next; 
+	}
+
+	(*head) = n_head; 
 }
+
+void freeBufferList(bufList *head)
+{
+	bufList *temp = NULL; 
+	while(head != NULL)
+	{
+		temp = head;
+		head = head->next;
+		free(temp); 
+	}
+
+	temp = NULL; 
+	head = NULL; 
+}	
 
 int main(int argc, char **argv)
 {
@@ -116,10 +153,29 @@ int main(int argc, char **argv)
 	if (FP != NULL)
 	{
 		fileSize = getFileSize(FP);
-		fileSize += allocateBuffer(&buffer, fileSize); 
+		buffer = allocateBuffer(buffer, fileSize); 
 		loadBuffer(buffer, FP, fileSize);
 		closeFile(FP);
 	}	
+	
+	// TEST
+	bufList *head; 
+	for(int i = 0; i < fileSize; ++i)
+	{
+		addBufferToList(buffer[i], &head); 
+	}	
+
+	for(int i = 0; i < fileSize; ++i)
+	{
+		addBufferToList(buffer[i], &head); 
+	}	
+
+	while(head != NULL)
+	{
+		printf("%c", head->character); 
+		head = head->next; 
+	}
+
 	printf("%s", buffer); 
 	freeBuffer(buffer);
 
