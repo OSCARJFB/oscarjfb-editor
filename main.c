@@ -1,6 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+typedef struct ERROR
+{
+
+} ERROR; 
+
 FILE *getFileFromArg(int argc, char **argv)
 {
 	if (argc < 2)
@@ -112,7 +117,7 @@ void addBufferToList(char character, bufList **head)
 	}
 
 	bufList *n_head = malloc(sizeof(bufList));
-	if((n_head) == NULL)
+	if(n_head == NULL)
 	{
 		puts("addBufferToList: malloc(), couldn't allocate memory for node");
 	} 
@@ -122,12 +127,25 @@ void addBufferToList(char character, bufList **head)
 	n_head->next = NULL; 
 	n_head->prev = NULL; 	
 
-	while((*head) != NULL)
-	{
-		(*head) = (*head)->next; 
+	bufList *c_node = *head; 
+	bufList *temp = NULL; 
+	while(c_node->next != NULL)
+	{	
+		temp = c_node; 
+		c_node = c_node->next; 
 	}
 
-	(*head) = n_head; 
+	c_node->next = n_head; 
+	n_head->prev = temp; 
+}
+
+void printBufferList(bufList *head)
+{
+	while(head != NULL)
+	{
+		printf("%c", head->character); 
+		head = head->next; 
+	}
 }
 
 void freeBufferList(bufList *head)
@@ -142,41 +160,52 @@ void freeBufferList(bufList *head)
 
 	temp = NULL; 
 	head = NULL; 
-}	
+}
+
+bufList *createBufferList(char *buffer, bufList *head, long fileSize)
+{
+	for(int i = 0; i < fileSize; ++i)
+	{
+		addBufferToList(buffer[i], &head); 
+	}	
+
+	return head; 
+}
 
 int main(int argc, char **argv)
 {
 	long fileSize = 0;
 	char *buffer = NULL;
+	bufList *head = NULL;
 	
 	FILE *FP = getFileFromArg(argc, argv);
-	if (FP != NULL)
+	if (FP == NULL)
 	{
-		fileSize = getFileSize(FP);
-		buffer = allocateBuffer(buffer, fileSize); 
-		loadBuffer(buffer, FP, fileSize);
-		closeFile(FP);
-	}	
-	
-	// TEST
-	bufList *head; 
-	for(int i = 0; i < fileSize; ++i)
-	{
-		addBufferToList(buffer[i], &head); 
-	}	
-
-	for(int i = 0; i < fileSize; ++i)
-	{
-		addBufferToList(buffer[i], &head); 
-	}	
-
-	while(head != NULL)
-	{
-		printf("%c", head->character); 
-		head = head->next; 
+		exit(-1); 
 	}
 
-	printf("%s", buffer); 
+	fileSize = getFileSize(FP);
+	if(fileSize == -1)
+	{
+		exit(-1); 
+	}
+
+	buffer = allocateBuffer(buffer, fileSize);
+	if(buffer == NULL)
+	{
+		exit(-1); 
+	}
+
+	loadBuffer(buffer, FP, fileSize);
+	closeFile(FP);
+
+	head = createBufferList(buffer, head, fileSize);
+	if(head == NULL)
+	{
+		exit(-1); 
+	}
+
+	printBufferList(head); 
 	freeBuffer(buffer);
 
 	return 0;
