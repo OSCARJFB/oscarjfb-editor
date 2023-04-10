@@ -2,10 +2,12 @@
 #include <stdlib.h>
 #include <ncurses.h>
 
+/*
 typedef struct ERROR
 {
 
 } ERROR;
+*/
 
 FILE *getFileFromArg(int argc, char **argv)
 {
@@ -99,14 +101,14 @@ typedef struct bufList
 	struct bufList *prev;
 } bufList;
 
-void addBufferToList(int ch, bufList **head)
+void addNode(int ch, bufList **head)
 {
 	if ((*head) == NULL)
 	{
 		(*head) = malloc(sizeof(bufList));
 		if ((*head) == NULL)
 		{
-			puts("addBufferToList: malloc(), couldn't allocate memory for node");
+			puts("addNode: malloc(), couldn't allocate memory for node");
 		}
 
 		(*head)->ch = ch;
@@ -119,7 +121,7 @@ void addBufferToList(int ch, bufList **head)
 	bufList *n_head = malloc(sizeof(bufList));
 	if (n_head == NULL)
 	{
-		puts("addBufferToList: malloc(), couldn't allocate memory for node");
+		puts("addNode: malloc(), couldn't allocate memory for node");
 	}
 
 	n_head->ch = ch;
@@ -161,11 +163,38 @@ void freeBufferList(bufList *head)
 	head = NULL;
 }
 
+void deleteNode(bufList *head)
+{
+	if(head == NULL)
+	{
+		return;
+	}
+
+	while(head != NULL)
+	{
+		if(head->next == NULL)
+		{
+			break; 
+		}
+
+		head = head->next; 
+	}
+
+	if(head->prev != NULL)
+	{
+		bufList *p_head = head->prev;  
+		p_head->next = NULL; 
+	}
+
+	free(head); 
+	head = NULL; 
+}
+
 bufList *createBufferList(char *buffer, bufList *head, long fileSize)
 {
 	for (int i = 0; i < fileSize; ++i)
 	{
-		addBufferToList(buffer[i], &head);
+		addNode(buffer[i], &head);
 	}
 
 	return head;
@@ -186,13 +215,21 @@ void edit(bufList *head)
 		printBufferList(head);
 		if ((ch = getch()) > 0x00)
 		{
-			if (ch != KEY_UP && ch != KEY_DOWN &&
-				ch != KEY_LEFT && ch != KEY_RIGHT &&
-				ch != KEY_BACKSPACE)
+			switch (ch)
 			{
-				// Might be an idea to send the position of the cursor as a single number.
-				// Translate from x,y using a switch or something similar. 
-				addBufferToList(ch, &head);
+			case KEY_UP:
+				break;
+			case KEY_DOWN:
+				break;
+			case KEY_LEFT:
+				break;
+			case KEY_RIGHT:
+				break;
+			case KEY_BACKSPACE:
+				deleteNode(head); 
+				break; 
+			default:
+				addNode(ch, &head);
 			}
 
 			clear();
@@ -203,42 +240,42 @@ void edit(bufList *head)
 	}
 }
 
-	int main(int argc, char **argv)
+int main(int argc, char **argv)
+{
+	system("clear");
+	long fileSize = 0;
+	char *buffer = NULL;
+	bufList *head = NULL;
+
+	FILE *FP = getFileFromArg(argc, argv);
+	if (FP == NULL)
 	{
-		system("clear");
-		long fileSize = 0;
-		char *buffer = NULL;
-		bufList *head = NULL;
-
-		FILE *FP = getFileFromArg(argc, argv);
-		if (FP == NULL)
-		{
-			exit(-1);
-		}
-
-		fileSize = getFileSize(FP);
-		if (fileSize == -1)
-		{
-			exit(-1);
-		}
-
-		buffer = allocateBuffer(buffer, fileSize);
-		if (buffer == NULL)
-		{
-			exit(-1);
-		}
-
-		loadBuffer(buffer, FP, fileSize);
-
-		head = createBufferList(buffer, head, fileSize);
-		if (head == NULL)
-		{
-			exit(-1);
-		}
-
-		edit(head);
-		freeBuffer(buffer);
-		closeFile(FP);
-
-		return 0;
+		exit(-1);
 	}
+
+	fileSize = getFileSize(FP);
+	if (fileSize == -1)
+	{
+		exit(-1);
+	}
+
+	buffer = allocateBuffer(buffer, fileSize);
+	if (buffer == NULL)
+	{
+		exit(-1);
+	}
+
+	loadBuffer(buffer, FP, fileSize);
+
+	head = createBufferList(buffer, head, fileSize);
+	if (head == NULL)
+	{
+		exit(-1);
+	}
+
+	edit(head);
+	freeBuffer(buffer);
+	closeFile(FP);
+
+	return 0;
+}
