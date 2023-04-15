@@ -15,50 +15,54 @@ bufList *createNodesFromBuffer(char *buffer, bufList *head, long fileSize)
 
 void addNode(int ch, bufList **head)
 {
-	if ((*head) == NULL)
+	static int ch_num = 0; 
+	
+	if (*head == NULL)
 	{
-		(*head) = malloc(sizeof(bufList));
-		if ((*head) == NULL)
+		*head = malloc(sizeof(bufList));
+		if (*head == NULL)
 		{
 			puts("addNode: malloc(), couldn't allocate memory for node");
 			return;
 		}
 
 		(*head)->ch = ch;
+		(*head)->ch_num = ch_num++;
 		(*head)->next = NULL;
-		(*head)->prev = NULL; 
+		(*head)->prev = NULL;
 
 		return;
 	}
 
-	bufList *n_head = malloc(sizeof(bufList));
-	if (n_head == NULL)
+	bufList *new_node = malloc(sizeof(bufList));
+	if (new_node == NULL)
 	{
 		puts("addNode: malloc(), couldn't allocate memory for node");
 		return;
 	}
 
-	n_head->ch = ch;
-	n_head->next = NULL;
+	new_node->ch = ch;
+	new_node->ch_num = ch_num++;
+	new_node->next = NULL;
 
-	bufList *c_node = *head;
-	bufList *temp = NULL; 
-	while (c_node->next != NULL)
+	bufList *last_node = *head;
+	bufList *prev_node = NULL;
+	while (last_node->next != NULL)
 	{
-		c_node = c_node->next;
-		if(c_node->next == NULL)
+		last_node = last_node->next;
+		if (last_node->next == NULL)
 		{
-			temp = c_node;
+			prev_node = last_node;
 		}
 	}
 
-	c_node->next = n_head;
-	n_head->prev = temp;
+	last_node->next = new_node;
+	new_node->prev = prev_node;
 }
 
 void printNodes(bufList *head)
 {
-	clear(); 
+	clear();
 	while (head != NULL)
 	{
 		addch(head->ch);
@@ -67,30 +71,39 @@ void printNodes(bufList *head)
 	refresh();
 }
 
-void deleteNode(bufList *head)
+void deleteNode(bufList **head)
 {
-	if (head == NULL)
+	if (*head == NULL)
 	{
 		return;
 	}
 
-	while (head != NULL)
+	bufList *end_node = *head;
+
+	while (end_node != NULL)
 	{
-		if(head->next == NULL)
+		if (end_node->next == NULL)
 		{
-			break; 
+			break;
 		}
-		head = head->next;
+
+		end_node = end_node->next;
 	}
 
-	if(head->prev != NULL)
+	if (end_node->prev != NULL)
 	{
-		bufList *p_head = head->prev;  
-		p_head->next = NULL; 
+		bufList *prev_node = end_node->prev;
+		prev_node->next = NULL;
+	}
+	else
+	{
+		free(*head);
+		*head = NULL; 
+		return;
 	}
 
-	free(head);
-	head = NULL;
+	free(end_node);
+	end_node = NULL;
 }
 
 void deleteAllNodes(bufList *head)
@@ -112,18 +125,18 @@ void edit(bufList *head)
 	int ch = 0x00;
 
 	initscr();
-	nodelay(stdscr, 1); 
+	nodelay(stdscr, 1);
 	curs_set(1);
 	keypad(stdscr, 1);
 
-	if(head != NULL)
+	if (head != NULL)
 	{
 		printNodes(head);
 	}
 
 	while ((ch = getch()) != 0x1b)
 	{
-		if(ch > 0x00)
+		if (ch > 0x00)
 		{
 			switch (ch)
 			{
@@ -136,7 +149,7 @@ void edit(bufList *head)
 			case KEY_RIGHT:
 				break;
 			case KEY_BACKSPACE:
-				deleteNode(head);
+				deleteNode(&head);
 				printNodes(head);
 				break;
 			default:
