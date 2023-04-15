@@ -3,7 +3,7 @@
 
 typedef struct bufList
 {
-	int ch;
+	int ch, ch_num;
 	struct bufList *next;
 	struct bufList *prev;
 } bufList;
@@ -14,7 +14,7 @@ void addNode(int ch, bufList **head);
 
 void printNodes(bufList *head);
 
-void deleteNode(bufList *head);
+void deleteNode(bufList **head);
 
 void deleteAllNodes(bufList *head);
 
