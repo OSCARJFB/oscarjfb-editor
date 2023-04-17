@@ -5,18 +5,29 @@
 
 bufList *createNodesFromBuffer(char *buffer, bufList *head, long fileSize)
 {
+	int x = 0, y = 0;
+
 	for (int i = 0; i < fileSize; ++i)
 	{
-		addNode(buffer[i], &head);
+		addNode(buffer[i], &head,
+				x, y);
+		
+		if (buffer[i] == '\n')
+		{ 
+			++y;
+			x = 0;
+			continue;
+		}
+
+		++x;
 	}
 
 	return head;
 }
 
-void addNode(int ch, bufList **head)
+void addNode(int ch, bufList **head,
+			 int x, int y)
 {
-	static int ch_num = 0; 
-	
 	if (*head == NULL)
 	{
 		*head = malloc(sizeof(bufList));
@@ -26,8 +37,9 @@ void addNode(int ch, bufList **head)
 			return;
 		}
 
+		(*head)->x = x;
+		(*head)->y = y;
 		(*head)->ch = ch;
-		(*head)->ch_num = ch_num++;
 		(*head)->next = NULL;
 		(*head)->prev = NULL;
 
@@ -41,8 +53,9 @@ void addNode(int ch, bufList **head)
 		return;
 	}
 
+	new_node->x = x;
+	new_node->y = y;
 	new_node->ch = ch;
-	new_node->ch_num = ch_num++;
 	new_node->next = NULL;
 
 	bufList *last_node = *head;
@@ -65,7 +78,7 @@ void printNodes(bufList *head)
 	clear();
 	while (head != NULL)
 	{
-		addch(head->ch);
+		mvwaddch(stdscr, head->y, head->x, head->ch);
 		head = head->next;
 	}
 	refresh();
@@ -98,7 +111,7 @@ void deleteNode(bufList **head)
 	else
 	{
 		free(*head);
-		*head = NULL; 
+		*head = NULL;
 		return;
 	}
 
@@ -120,9 +133,26 @@ void deleteAllNodes(bufList *head)
 	head = NULL;
 }
 
+void getLastCoordinates(bufList *head, int *x, int *y)
+{
+	while(head != NULL)
+	{
+		if(head->next == NULL)
+		{
+			break; 
+		}
+
+		head = head->next;
+	}
+
+	*x = head->x + 1;
+	*y = head->y;
+}
+
 void edit(bufList *head)
 {
-	int ch = 0x00;
+	int ch = 0x00, x = 0, y = 0;
+	getLastCoordinates(head, &x, &y);
 
 	initscr();
 	nodelay(stdscr, 1);
@@ -153,8 +183,13 @@ void edit(bufList *head)
 				printNodes(head);
 				break;
 			default:
-				addNode(ch, &head);
+				addNode(ch, &head, x++, y);
 				printNodes(head);
+				if(ch == '\n')
+				{
+					++y;
+					x = 0;  
+				}
 			}
 		}
 	}

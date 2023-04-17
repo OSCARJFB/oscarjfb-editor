@@ -3,20 +3,23 @@
 
 typedef struct bufList
 {
-	int ch, ch_num;
+	int ch, x, y;
 	struct bufList *next;
 	struct bufList *prev;
 } bufList;
 
 bufList *createNodesFromBuffer(char *buffer, bufList *head, long fileSize);
 
-void addNode(int ch, bufList **head);
+void addNode(int ch, bufList **head,
+			 int x, int y);
 
 void printNodes(bufList *head);
 
 void deleteNode(bufList **head);
 
 void deleteAllNodes(bufList *head);
+
+void getLastCoordinates(bufList *head, int *x, int *y);
 
 void edit(bufList *head);
 
