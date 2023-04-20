@@ -1,6 +1,7 @@
 #include "textList.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdbool.h>
 #include <ncurses.h>
 
 bufList *createNodesFromBuffer(char *buffer, bufList *head, long fileSize)
@@ -11,9 +12,9 @@ bufList *createNodesFromBuffer(char *buffer, bufList *head, long fileSize)
 	{
 		addNode(buffer[i], &head,
 				x, y);
-		
+
 		if (buffer[i] == '\n')
-		{ 
+		{
 			++y;
 			x = 0;
 			continue;
@@ -23,6 +24,20 @@ bufList *createNodesFromBuffer(char *buffer, bufList *head, long fileSize)
 	}
 
 	return head;
+}
+
+void updateXYNodesDel(bufList **head, int x, int y)
+{
+	for (int new_x = x; (*head)->next != NULL; --new_x)
+	{
+		(*head)->x = new_x;
+		(*head) = (*head)->next;
+		if((*head)->ch == '\n')
+		{
+			(*head)->x = new_x + 1;
+			break;
+		}
+	}
 }
 
 void addNode(int ch, bufList **head,
@@ -60,6 +75,7 @@ void addNode(int ch, bufList **head,
 
 	bufList *last_node = *head;
 	bufList *prev_node = NULL;
+
 	while (last_node->next != NULL)
 	{
 		last_node = last_node->next;
@@ -84,62 +100,95 @@ void printNodes(bufList *head)
 	refresh();
 }
 
-void deleteNode(bufList **head)
+
+void tempPrintAllNode(bufList *head)
+{
+	printf("\n\n");
+	while(head != NULL)
+	{
+		if(head->ch == '\n')
+		{
+			head->ch = 'N';
+		}
+		printf("%c ", head->ch);
+		head = head->next;
+	}
+}
+void deleteNode(bufList **head, int x, int y)
 {
 	if (*head == NULL)
 	{
 		return;
 	}
 
+	bool isEndNode = true;
 	bufList *end_node = *head;
+	bufList *prev_node = NULL;
+	bufList *next_node = NULL; 
 
+	// Find node to be deleted. 
 	while (end_node != NULL)
 	{
+		// If it is the last node.
 		if (end_node->next == NULL)
 		{
+			break;
+		}
+		
+		// If it is a node between start and end at the cursor position. 
+		if(end_node->x == x && end_node->y == y)
+		{
+			// Set end node to be the node behind the cursor. 
+			end_node = end_node->prev;
+			isEndNode = false; 
 			break;
 		}
 
 		end_node = end_node->next;
 	}
 
-	if (end_node->prev != NULL)
-	{
-		bufList *prev_node = end_node->prev;
-		prev_node->next = NULL;
-	}
-	else
+	// If last node in the list. 
+	if(end_node->prev == NULL)
 	{
 		free(*head);
 		*head = NULL;
 		return;
 	}
 
-	free(end_node);
-	end_node = NULL;
-}
-
-void deleteAllNodes(bufList *head)
-{
-	bufList *temp = NULL;
-	while (head != NULL)
+	if (isEndNode)
 	{
-		temp = head;
-		head = head->next;
-		free(temp);
+		prev_node = end_node->prev;
+		prev_node->next = NULL;
+	}
+	else if(!isEndNode)
+	{
+		if(end_node->prev != NULL && end_node->next != NULL)
+		{
+			prev_node = end_node->prev;
+			next_node = end_node->next;
+			next_node->prev = prev_node;
+			prev_node->next = next_node;
+
+			updateXYNodesDel(&next_node, x, y);
+		}
 	}
 
-	temp = NULL;
-	head = NULL;
+	free(end_node);
+	end_node = NULL;
+
+	system("clear");
+	tempPrintAllNode(*head);
+	endwin();
+	exit(1);
 }
 
 void getLastCoordinates(bufList *head, int *x, int *y)
 {
-	while(head != NULL)
+	while (head != NULL)
 	{
-		if(head->next == NULL)
+		if (head->next == NULL)
 		{
-			break; 
+			break;
 		}
 
 		head = head->next;
@@ -149,7 +198,10 @@ void getLastCoordinates(bufList *head, int *x, int *y)
 	*y = head->y;
 }
 
-void edit(bufList *head)
+#define ESC 0x1b
+#define NUL 0x00
+
+void editTextFile(bufList *head)
 {
 	int ch = 0x00, x = 0, y = 0;
 	getLastCoordinates(head, &x, &y);
@@ -164,35 +216,69 @@ void edit(bufList *head)
 		printNodes(head);
 	}
 
-	while ((ch = getch()) != 0x1b)
+	while ((ch = getch()) != ESC)
 	{
-		if (ch > 0x00)
+		if (ch > NUL)
 		{
 			switch (ch)
 			{
 			case KEY_UP:
+				if(y > 0)
+				{
+					--y;
+				}
 				break;
 			case KEY_DOWN:
+				++y;
 				break;
 			case KEY_LEFT:
+				if(x > 0)
+				{
+					--x;
+				}
 				break;
 			case KEY_RIGHT:
+				++x;
 				break;
 			case KEY_BACKSPACE:
-				deleteNode(&head);
+				if (ch == '\n' && y != 0)
+				{
+					--y;
+					x = 0;
+				}
+				deleteNode(&head, x, y);
 				printNodes(head);
+				--x;
 				break;
+			/*
 			default:
 				addNode(ch, &head, x++, y);
 				printNodes(head);
-				if(ch == '\n')
+				if (ch == '\n')
 				{
 					++y;
-					x = 0;  
+					x = 0;
 				}
+			*/
 			}
+
+			move(y, x);
 		}
 	}
 
 	endwin();
+}
+
+void deleteAllNodes(bufList *head)
+{
+	bufList *temp = NULL;
+	while (head != NULL)
+	{
+		temp = head;
+		head = head->next;
+		free(temp);
+	}
+
+	temp = NULL;
+	head = NULL;
 }

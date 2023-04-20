@@ -10,17 +10,22 @@ typedef struct bufList
 
 bufList *createNodesFromBuffer(char *buffer, bufList *head, long fileSize);
 
+void updateXYNodesDel(bufList **head, int x, int y);
+
+void updateXYNodesAdd(bufList **head, int x, int y);
+
 void addNode(int ch, bufList **head,
 			 int x, int y);
 
 void printNodes(bufList *head);
 
-void deleteNode(bufList **head);
-
-void deleteAllNodes(bufList *head);
+void deleteNode(bufList **head, int x, int y);
 
 void getLastCoordinates(bufList *head, int *x, int *y);
 
-void edit(bufList *head);
+void editTextFile(bufList *head);
 
+void deleteAllNodes(bufList *head);
+
+void tempPrintAllNode(bufList *head);
 #endif // TEXTLIST_H
