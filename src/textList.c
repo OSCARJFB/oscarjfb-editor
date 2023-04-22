@@ -28,14 +28,11 @@ bufList *createNodesFromBuffer(char *buffer, bufList *head, long fileSize)
 
 void updateXYNodesDel(bufList **head, int x, int y)
 {
-	for (int new_x = x; (*head)->next != NULL; --new_x)
+	bufList *temp_head = (*head);
+	for (int new_x = x; temp_head != NULL && temp_head->y == y; ++new_x)
 	{
-		(*head)->x = new_x;
-		(*head) = (*head)->next;
-		if((*head)->ch == '\n')
-		{
-			break;
-		}
+		temp_head->x = new_x;
+		temp_head = temp_head->next;
 	}
 }
 
@@ -154,7 +151,7 @@ void deleteNode(bufList **head, int x, int y)
 
 	if (isEndNode)
 	{
-		// Make sure our new end node points to null. 
+		// Make sure our new end node points to NULL. 
 		end_node->prev->next = NULL;
 	}
 	else if(!isEndNode)
@@ -164,8 +161,8 @@ void deleteNode(bufList **head, int x, int y)
 		{
 			end_node->prev->next = end_node->next;
 			end_node->next->prev = end_node->prev;
-
-			updateXYNodesDel(&end_node->next, x, y);
+			
+			updateXYNodesDel(&end_node->prev->next, end_node->x, y);
 		}
 	}
 
