@@ -34,7 +34,6 @@ void updateXYNodesDel(bufList **head, int x, int y)
 		(*head) = (*head)->next;
 		if((*head)->ch == '\n')
 		{
-			(*head)->x = new_x + 1;
 			break;
 		}
 	}
@@ -110,7 +109,7 @@ void tempPrintAllNode(bufList *head)
 		{
 			head->ch = 'N';
 		}
-		printf("%c ", head->ch);
+		printf("%c(x:%d, y%d)\n", head->ch, head->x, head->y);
 		head = head->next;
 	}
 }
@@ -123,8 +122,6 @@ void deleteNode(bufList **head, int x, int y)
 
 	bool isEndNode = true;
 	bufList *end_node = *head;
-	bufList *prev_node = NULL;
-	bufList *next_node = NULL; 
 
 	// Find node to be deleted. 
 	while (end_node != NULL)
@@ -157,29 +154,23 @@ void deleteNode(bufList **head, int x, int y)
 
 	if (isEndNode)
 	{
-		prev_node = end_node->prev;
-		prev_node->next = NULL;
+		// Make sure our new end node points to null. 
+		end_node->prev->next = NULL;
 	}
 	else if(!isEndNode)
 	{
+		// chain the nodes together, prev node -> <- next node
 		if(end_node->prev != NULL && end_node->next != NULL)
 		{
-			prev_node = end_node->prev;
-			next_node = end_node->next;
-			next_node->prev = prev_node;
-			prev_node->next = next_node;
+			end_node->prev->next = end_node->next;
+			end_node->next->prev = end_node->prev;
 
-			updateXYNodesDel(&next_node, x, y);
+			updateXYNodesDel(&end_node->next, x, y);
 		}
 	}
 
 	free(end_node);
 	end_node = NULL;
-
-	system("clear");
-	tempPrintAllNode(*head);
-	endwin();
-	exit(1);
 }
 
 void getLastCoordinates(bufList *head, int *x, int *y)
@@ -223,19 +214,13 @@ void editTextFile(bufList *head)
 			switch (ch)
 			{
 			case KEY_UP:
-				if(y > 0)
-				{
-					--y;
-				}
+				--y;
 				break;
 			case KEY_DOWN:
 				++y;
 				break;
 			case KEY_LEFT:
-				if(x > 0)
-				{
-					--x;
-				}
+				--x;
 				break;
 			case KEY_RIGHT:
 				++x;
