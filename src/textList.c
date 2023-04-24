@@ -26,13 +26,19 @@ bufList *createNodesFromBuffer(char *buffer, bufList *head, long fileSize)
 	return head;
 }
 
-void updateXYNodesDel(bufList **head, int x, int y)
+void updateXYNodesDel(bufList **head)
 {
-	bufList *temp_head = (*head);
-	for (int new_x = x; temp_head != NULL && temp_head->y == y; ++new_x)
+	// If new line, our x will be set to its position since we want our next ch to be at that location.
+	int x = (*head)->ch = '\n' ? (*head)->x : (*head)->x + 1;
+	int y = (*head)->y;
+
+	for (*head = (*head)->next;
+		 *head != NULL;
+		 *head = (*head)->next)
 	{
-		temp_head->x = new_x;
-		temp_head = temp_head->next;
+		(*head)->x = x;
+		(*head)->y = y;
+		++x;
 	}
 }
 
@@ -96,13 +102,12 @@ void printNodes(bufList *head)
 	refresh();
 }
 
-
 void tempPrintAllNode(bufList *head)
 {
 	printf("\n\n");
-	while(head != NULL)
+	while (head != NULL)
 	{
-		if(head->ch == '\n')
+		if (head->ch == '\n')
 		{
 			head->ch = 'N';
 		}
@@ -120,7 +125,7 @@ void deleteNode(bufList **head, int x, int y)
 	bool isEndNode = true;
 	bufList *end_node = *head;
 
-	// Find node to be deleted. 
+	// Find node to be deleted.
 	while (end_node != NULL)
 	{
 		// If it is the last node.
@@ -128,21 +133,21 @@ void deleteNode(bufList **head, int x, int y)
 		{
 			break;
 		}
-		
-		// If it is a node between start and end at the cursor position. 
-		if(end_node->x == x && end_node->y == y)
+
+		// If it is a node between start and end at the cursor position.
+		if (end_node->x == x && end_node->y == y)
 		{
-			// Set end node to be the node behind the cursor. 
+			// Set end node to be the node behind the cursor.
 			end_node = end_node->prev;
-			isEndNode = false; 
+			isEndNode = false;
 			break;
 		}
 
 		end_node = end_node->next;
 	}
 
-	// If last node in the list. 
-	if(end_node->prev == NULL)
+	// If last node in the list.
+	if (end_node->prev == NULL)
 	{
 		free(*head);
 		*head = NULL;
@@ -151,18 +156,18 @@ void deleteNode(bufList **head, int x, int y)
 
 	if (isEndNode)
 	{
-		// Make sure our new end node points to NULL. 
+		// Make sure our new end node points to NULL.
 		end_node->prev->next = NULL;
 	}
-	else if(!isEndNode)
+	else if (!isEndNode)
 	{
 		// chain the nodes together, prev node -> <- next node
-		if(end_node->prev != NULL && end_node->next != NULL)
+		if (end_node->prev != NULL && end_node->next != NULL)
 		{
 			end_node->prev->next = end_node->next;
 			end_node->next->prev = end_node->prev;
-			
-			updateXYNodesDel(&end_node->prev->next, end_node->x, y);
+
+			updateXYNodesDel(&end_node);
 		}
 	}
 
@@ -232,16 +237,16 @@ void editTextFile(bufList *head)
 				printNodes(head);
 				--x;
 				break;
-			/*
-			default:
-				addNode(ch, &head, x++, y);
-				printNodes(head);
-				if (ch == '\n')
-				{
-					++y;
-					x = 0;
-				}
-			*/
+				/*
+				default:
+					addNode(ch, &head, x++, y);
+					printNodes(head);
+					if (ch == '\n')
+					{
+						++y;
+						x = 0;
+					}
+				*/
 			}
 
 			move(y, x);
