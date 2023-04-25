@@ -19,7 +19,7 @@ void addNode(int ch, bufList **head,
 
 void printNodes(bufList *head);
 
-void deleteNode(bufList **head, int x, int y);
+void deleteNode(bufList **head, int *x, int *y);
 
 void getLastCoordinates(bufList *head, int *x, int *y);
 
