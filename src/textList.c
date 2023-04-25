@@ -102,6 +102,7 @@ void printNodes(bufList *head)
 	refresh();
 }
 
+/*
 void tempPrintAllNode(bufList *head)
 {
 	printf("\n\n");
@@ -115,39 +116,37 @@ void tempPrintAllNode(bufList *head)
 		head = head->next;
 	}
 }
-void deleteNode(bufList **head, int x, int y)
+*/
+
+void deleteNode(bufList **head, int *x, int *y)
 {
 	if (*head == NULL)
 	{
+		*x = 0; 
+		*y = 0;
 		return;
 	}
 
 	bool isEndNode = true;
-	bufList *end_node = *head;
+	bufList *del_node = *head, *temp_node = NULL;
 
 	// Find node to be deleted.
-	while (end_node != NULL)
+	while (del_node->next != NULL)
 	{
-		// If it is the last node.
-		if (end_node->next == NULL)
-		{
-			break;
-		}
-
 		// If it is a node between start and end at the cursor position.
-		if (end_node->x == x && end_node->y == y)
+		if (del_node->x == *x && del_node->y == *y)
 		{
 			// Set end node to be the node behind the cursor.
-			end_node = end_node->prev;
+			del_node = del_node->prev;
 			isEndNode = false;
 			break;
 		}
 
-		end_node = end_node->next;
+		del_node = del_node->next;
 	}
 
-	// If last node in the list.
-	if (end_node->prev == NULL)
+
+	if (del_node->prev == NULL)
 	{
 		free(*head);
 		*head = NULL;
@@ -157,22 +156,24 @@ void deleteNode(bufList **head, int x, int y)
 	if (isEndNode)
 	{
 		// Make sure our new end node points to NULL.
-		end_node->prev->next = NULL;
+		del_node->prev->next = NULL;
 	}
 	else if (!isEndNode)
 	{
 		// chain the nodes together, prev node -> <- next node
-		if (end_node->prev != NULL && end_node->next != NULL)
+		if (del_node->prev != NULL && del_node->next != NULL)
 		{
-			end_node->prev->next = end_node->next;
-			end_node->next->prev = end_node->prev;
-
-			updateXYNodesDel(&end_node);
+			temp_node = del_node;
+			temp_node->prev->next = temp_node->next;
+			temp_node->next->prev = temp_node->prev;
+			updateXYNodesDel(&temp_node);
 		}
 	}
 
-	free(end_node);
-	end_node = NULL;
+	*x = del_node->x;
+	*y = del_node->y;
+	free(del_node);
+	del_node = NULL;
 }
 
 void getLastCoordinates(bufList *head, int *x, int *y)
@@ -228,14 +229,8 @@ void editTextFile(bufList *head)
 				++x;
 				break;
 			case KEY_BACKSPACE:
-				if (ch == '\n' && y != 0)
-				{
-					--y;
-					x = 0;
-				}
-				deleteNode(&head, x, y);
+				deleteNode(&head, &x, &y);
 				printNodes(head);
-				--x;
 				break;
 				/*
 				default:
