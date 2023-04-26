@@ -74,6 +74,7 @@ void addNode(int ch, bufList **head,
 	new_node->y = y;
 	new_node->ch = ch;
 	new_node->next = NULL;
+	new_node->prev = NULL; 
 
 	bufList *last_node = *head;
 	bufList *prev_node = NULL;
@@ -81,12 +82,9 @@ void addNode(int ch, bufList **head,
 	while (last_node->next != NULL)
 	{
 		last_node = last_node->next;
-		if (last_node->next == NULL)
-		{
-			prev_node = last_node;
-		}
 	}
 
+	prev_node = last_node;
 	last_node->next = new_node;
 	new_node->prev = prev_node;
 }
@@ -102,21 +100,27 @@ void printNodes(bufList *head)
 	refresh();
 }
 
-/*
+// Test function
 void tempPrintAllNode(bufList *head)
 {
+	endwin();
 	printf("\n\n");
-	while (head != NULL)
+	for (int i = 1; head != NULL; ++i)
 	{
-		if (head->ch == '\n')
-		{
-			head->ch = 'N';
-		}
-		printf("%c(x:%d, y%d)\n", head->ch, head->x, head->y);
+		printf("Item:%d ", i);
+		if(head->next == NULL)
+			printf("next == NULL");
+		if(head->prev == NULL)
+			printf("prev == NULL");
+
+		printf("\n");
+
 		head = head->next;
 	}
+
+	exit(1);
 }
-*/
+
 
 void deleteNode(bufList **head, int *x, int *y)
 {
@@ -148,8 +152,17 @@ void deleteNode(bufList **head, int *x, int *y)
 
 	if (del_node->prev == NULL)
 	{
+		// Fix here!
+		// Make sure we don't delete all connections in link
+		*x = 0; 
+		*y = 0;
+		if(del_node->next != NULL)
+		{
+			del_node->next->prev = NULL; 
+		}
+
 		free(*head);
-		*head = NULL;
+		head = NULL;
 		return;
 	}
 
@@ -168,6 +181,9 @@ void deleteNode(bufList **head, int *x, int *y)
 			temp_node->next->prev = temp_node->prev;
 			updateXYNodesDel(&temp_node);
 		}
+
+		// Fix
+		// If just before last node 
 	}
 
 	*x = del_node->x;
@@ -212,6 +228,7 @@ void editTextFile(bufList *head)
 
 	while ((ch = getch()) != ESC)
 	{
+		//tempPrintAllNode(head); 
 		if (ch > NUL)
 		{
 			switch (ch)
