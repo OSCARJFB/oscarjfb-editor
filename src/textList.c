@@ -28,7 +28,7 @@ bufList *createNodesFromBuffer(char *buffer, bufList *head, long fileSize)
 
 void updateXYNodesDel(bufList **head)
 {
-	int x = (*head)->ch = '\n' ? (*head)->x : (*head)->x + 1;
+	int x = (*head)->x;
 	int y = (*head)->y;
 
 	for (*head = (*head)->next;
@@ -38,6 +38,10 @@ void updateXYNodesDel(bufList **head)
 		(*head)->x = x;
 		(*head)->y = y;
 		++x;
+		if((*head)->ch == '\n')
+		{
+			++y;
+		}
 	}
 }
 
@@ -122,7 +126,7 @@ void testFunctionPrintAllNode(bufList *head)
 void deleteNode(bufList **head, int *x, int *y)
 {
 	// We can't free a node which is NULL.
-	if (*head == NULL)
+	if (*head == NULL || (*x == 0 && *y == 0))
 	{
 		*x = *y = 0;
 		return;
@@ -168,6 +172,17 @@ void deleteNode(bufList **head, int *x, int *y)
 	}
 	else if (!isEndNode)
 	{
+		if(del_node->prev == NULL && del_node->next != NULL)
+		{
+			temp_node = del_node;
+			temp_node = temp_node->next;
+			temp_node->prev = NULL;
+			*head = temp_node;
+			temp_node->x = del_node->x;
+			temp_node->y = del_node->y;
+			updateXYNodesDel(&temp_node);
+		}
+
 		if (del_node->prev != NULL && del_node->next != NULL)
 		{
 			temp_node = del_node;
@@ -175,6 +190,11 @@ void deleteNode(bufList **head, int *x, int *y)
 			temp_node->next->prev = temp_node->prev;
 			updateXYNodesDel(&temp_node);
 		}
+	}
+
+	if(del_node == NULL)
+	{
+		return;
 	}
 
 	*x = del_node->x;
@@ -216,7 +236,7 @@ void editTextFile(bufList *head)
 	{
 		printNodes(head);
 	}
-
+	
 	while ((ch = getch()) != ESC)
 	{
 		if (ch > NUL)
