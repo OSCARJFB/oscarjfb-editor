@@ -28,7 +28,6 @@ bufList *createNodesFromBuffer(char *buffer, bufList *head, long fileSize)
 
 void updateXYNodesDel(bufList **head)
 {
-	// If new line, our x will be set to its position since we want our next ch to be at that location.
 	int x = (*head)->ch = '\n' ? (*head)->x : (*head)->x + 1;
 	int y = (*head)->y;
 
@@ -74,7 +73,7 @@ void addNode(int ch, bufList **head,
 	new_node->y = y;
 	new_node->ch = ch;
 	new_node->next = NULL;
-	new_node->prev = NULL; 
+	new_node->prev = NULL;
 
 	bufList *last_node = *head;
 	bufList *prev_node = NULL;
@@ -100,17 +99,16 @@ void printNodes(bufList *head)
 	refresh();
 }
 
-// Test function
-void tempPrintAllNode(bufList *head)
+void testFunctionPrintAllNode(bufList *head)
 {
 	endwin();
 	printf("\n\n");
 	for (int i = 1; head != NULL; ++i)
 	{
 		printf("Item:%d ", i);
-		if(head->next == NULL)
+		if (head->next == NULL)
 			printf("next == NULL");
-		if(head->prev == NULL)
+		if (head->prev == NULL)
 			printf("prev == NULL");
 
 		printf("\n");
@@ -121,59 +119,55 @@ void tempPrintAllNode(bufList *head)
 	exit(1);
 }
 
-
 void deleteNode(bufList **head, int *x, int *y)
 {
+	// We can't free a node which is NULL.
 	if (*head == NULL)
 	{
-		*x = 0; 
-		*y = 0;
+		*x = *y = 0;
 		return;
 	}
 
 	bool isEndNode = true;
 	bufList *del_node = *head, *temp_node = NULL;
 
-	// Find node to be deleted.
+	// Find the node to be deleted.
 	while (del_node->next != NULL)
 	{
-		// If it is a node between start and end at the cursor position.
+		// Is a node in the middle of the list.
 		if (del_node->x == *x && del_node->y == *y)
 		{
-			// Set end node to be the node behind the cursor.
 			del_node = del_node->prev;
+			isEndNode = false;
+			break;
+		}
+
+		// Is the node just before the last node in the list.
+		if(del_node->next->x == *x && del_node->next->y == *y && del_node->next->next == NULL)
+		{
 			isEndNode = false;
 			break;
 		}
 
 		del_node = del_node->next;
 	}
-
-
-	if (del_node->prev == NULL)
+	
+	// If both prev and next are NULL this is the only node in the list.
+	if (del_node->prev == NULL && del_node->next == NULL)
 	{
-		// Fix here!
-		// Make sure we don't delete all connections in link
-		*x = 0; 
-		*y = 0;
-		if(del_node->next != NULL)
-		{
-			del_node->next->prev = NULL; 
-		}
-
+		*x = *y = 0;
 		free(*head);
-		head = NULL;
+		*head = NULL;
 		return;
 	}
 
+	// Adjust the linking of nodes depending on it being the last node or a node in the middle of the list. 
 	if (isEndNode)
 	{
-		// Make sure our new end node points to NULL.
 		del_node->prev->next = NULL;
 	}
 	else if (!isEndNode)
 	{
-		// chain the nodes together, prev node -> <- next node
 		if (del_node->prev != NULL && del_node->next != NULL)
 		{
 			temp_node = del_node;
@@ -181,9 +175,6 @@ void deleteNode(bufList **head, int *x, int *y)
 			temp_node->next->prev = temp_node->prev;
 			updateXYNodesDel(&temp_node);
 		}
-
-		// Fix
-		// If just before last node 
 	}
 
 	*x = del_node->x;
@@ -228,7 +219,6 @@ void editTextFile(bufList *head)
 
 	while ((ch = getch()) != ESC)
 	{
-		//tempPrintAllNode(head); 
 		if (ch > NUL)
 		{
 			switch (ch)
@@ -240,7 +230,10 @@ void editTextFile(bufList *head)
 				++y;
 				break;
 			case KEY_LEFT:
-				--x;
+				if (x > 0)
+				{
+					--x;
+				}
 				break;
 			case KEY_RIGHT:
 				++x;
