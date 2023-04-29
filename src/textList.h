@@ -27,5 +27,5 @@ void editTextFile(bufList *head);
 
 void deleteAllNodes(bufList *head);
 
-void tempPrintAllNode(bufList *head);
+void testFunctionPrintAllNode(bufList *head);
 #endif // TEXTLIST_H
