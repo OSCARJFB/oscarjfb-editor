@@ -28,29 +28,31 @@ bufList *createNodesFromBuffer(char *buffer, bufList *head, long fileSize)
 
 void updateXYNodesDel(bufList **head)
 {
-	// FIX this function
 	int x = (*head)->x;
 	int y = (*head)->y;
 
 	// Lone newline character -- special case move all line one step up.
-	if((*head)->ch == '\n' && (*head)->y > (*head)->prev->y && (*head)->y < (*head)->next->y)
+	if((*head)->ch == '\n')
 	{
+		// Get x position. 
+		x = (*head)->prev->x + 1; 
 
-		for (*head = (*head)->next;
-			*head != NULL;
-			*head = (*head)->next)
+		for (*head = (*head)->next; *head != NULL; *head = (*head)->next)
 		{
 			if((*head)->ch == '\n')
 			{
+				x = (*head)->prev->x + 1;
 				++y;
 			}
 
 			(*head)->y = y;
+			(*head)->x = x; 
+			++x; 
 		}
 
 		return;
 	}
-
+	
 	// Is on the same line
 	for (*head = (*head)->next;
 		 *head != NULL;
@@ -60,7 +62,6 @@ void updateXYNodesDel(bufList **head)
 		(*head)->y = y;
 		++x;
 	}
-
 }
 
 void addNode(int ch, bufList **head,
