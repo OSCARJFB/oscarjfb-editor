@@ -34,14 +34,10 @@ void updateXYNodesDel(bufList **head)
 	// Lone newline character -- special case move all line one step up.
 	if((*head)->ch == '\n')
 	{
-		// Get x position. 
-		x = (*head)->prev->x + 1; 
-
 		for (*head = (*head)->next; *head != NULL; *head = (*head)->next)
 		{
 			if((*head)->ch == '\n')
 			{
-				x = (*head)->prev->x + 1;
 				++y;
 			}
 
@@ -55,7 +51,7 @@ void updateXYNodesDel(bufList **head)
 	
 	// Is on the same line
 	for (*head = (*head)->next;
-		 *head != NULL;
+		 *head != NULL && (*head)->ch != '\n';
 		 *head = (*head)->next)
 	{
 		(*head)->x = x;
