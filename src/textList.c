@@ -31,17 +31,32 @@ void updateXYNodesDel(bufList **head)
 	int x = (*head)->x;
 	int y = (*head)->y;
 
+	// Lone newline character -- special case move all line one step up.
+	if((*head)->ch == '\n')
+	{
+		for (*head = (*head)->next; *head != NULL; *head = (*head)->next)
+		{
+			if((*head)->ch == '\n')
+			{
+				++y;
+			}
+
+			(*head)->y = y;
+			(*head)->x = x; 
+			++x; 
+		}
+
+		return;
+	}
+	
+	// Is on the same line
 	for (*head = (*head)->next;
-		 *head != NULL;
+		 *head != NULL && (*head)->ch != '\n';
 		 *head = (*head)->next)
 	{
 		(*head)->x = x;
 		(*head)->y = y;
 		++x;
-		if((*head)->ch == '\n')
-		{
-			++y;
-		}
 	}
 }
 
@@ -180,7 +195,7 @@ void deleteNode(bufList **head, int *x, int *y)
 			*head = temp_node;
 			temp_node->x = del_node->x;
 			temp_node->y = del_node->y;
-			updateXYNodesDel(&temp_node);
+			updateXYNodesDel(&temp_node); // (Temp comment) should send del_node, because now sending the next node. 
 		}
 
 		if (del_node->prev != NULL && del_node->next != NULL)
