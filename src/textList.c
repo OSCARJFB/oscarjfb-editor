@@ -26,28 +26,36 @@ bufList *createNodesFromBuffer(char *buffer, bufList *head, long fileSize)
 	return head;
 }
 
-void updateXYNodesDel(bufList **head)
+void updateXYNodesDel(bufList **head, int *x, int *y)
 {
-	int x = (*head)->x;
-	int y = (*head)->y;
+	int lx = (*head)->x;
+	int ly = (*head)->y;
 
 	// Newline character
 	if ((*head)->ch == '\n')
 	{
-		x = (*head)->x;
+		lx = (*head)->x;
 		for (*head = (*head)->next; *head != NULL; *head = (*head)->next)
 		{
 			if ((*head)->ch == '\n')
 			{
-				++y;
-				x = (*head)->x;
+				++ly;
+				lx = -1;
+				for (bufList *line_node = (*head)->next;
+					 line_node != NULL && line_node->y == ly;
+					 line_node = line_node->next)
+				{
+					++lx;
+				}
 			}
 
-			(*head)->y = y;
-			(*head)->x = x;
-			++x;
+			(*head)->y = ly;
+			(*head)->x = lx;
+			++lx;
 		}
-
+		
+		*x = lx + 1;
+		*y = ly;
 		return;
 	}
 
@@ -56,10 +64,13 @@ void updateXYNodesDel(bufList **head)
 		 *head != NULL && (*head)->ch != '\n';
 		 *head = (*head)->next)
 	{
-		(*head)->x = x;
-		(*head)->y = y;
-		++x;
+		(*head)->x = lx;
+		(*head)->y = ly;
+		++lx;
 	}
+
+	*x = lx + 1;
+	*y = ly;
 }
 
 void addNode(int ch, bufList **head,
@@ -164,7 +175,7 @@ void deleteNode(bufList **head, int *x, int *y)
 		}
 
 		// Is the node just before the last node in the list.
-		if(del_node->next->x == *x && del_node->next->y == *y && del_node->next->next == NULL)
+		if (del_node->next->x == *x && del_node->next->y == *y && del_node->next->next == NULL)
 		{
 			isEndNode = false;
 			break;
@@ -189,7 +200,7 @@ void deleteNode(bufList **head, int *x, int *y)
 	}
 	else if (!isEndNode)
 	{
-		if(del_node->prev == NULL && del_node->next != NULL)
+		if (del_node->prev == NULL && del_node->next != NULL)
 		{
 			temp_node = del_node;
 			temp_node = temp_node->next;
@@ -197,7 +208,7 @@ void deleteNode(bufList **head, int *x, int *y)
 			*head = temp_node;
 			temp_node->x = del_node->x;
 			temp_node->y = del_node->y;
-			updateXYNodesDel(&temp_node); // (Temp comment) should send del_node, because now sending the next node.
+			updateXYNodesDel(&temp_node, x, y); 
 		}
 
 		if (del_node->prev != NULL && del_node->next != NULL)
@@ -205,11 +216,11 @@ void deleteNode(bufList **head, int *x, int *y)
 			temp_node = del_node;
 			temp_node->prev->next = temp_node->next;
 			temp_node->next->prev = temp_node->prev;
-			updateXYNodesDel(&temp_node);
+			updateXYNodesDel(&temp_node, x, y);
 		}
 	}
 
-	if(del_node == NULL)
+	if (del_node == NULL)
 	{
 		return;
 	}
@@ -289,7 +300,7 @@ void editTextFile(bufList *head)
 			default:
 				addNode(ch, &head, x, y);
 				printNodes(head);
-				
+
 				++x;
 				if (ch == '\n')
 				{
