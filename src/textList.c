@@ -31,24 +31,26 @@ void updateXYNodesDel(bufList **head)
 	int x = (*head)->x;
 	int y = (*head)->y;
 
-	// Lone newline character -- special case move all line one step up.
-	if((*head)->ch == '\n')
+	// Newline character
+	if ((*head)->ch == '\n')
 	{
+		x = (*head)->x;
 		for (*head = (*head)->next; *head != NULL; *head = (*head)->next)
 		{
-			if((*head)->ch == '\n')
+			if ((*head)->ch == '\n')
 			{
 				++y;
+				x = (*head)->x;
 			}
 
 			(*head)->y = y;
-			(*head)->x = x; 
-			++x; 
+			(*head)->x = x;
+			++x;
 		}
 
 		return;
 	}
-	
+
 	// Is on the same line
 	for (*head = (*head)->next;
 		 *head != NULL && (*head)->ch != '\n';
@@ -170,7 +172,7 @@ void deleteNode(bufList **head, int *x, int *y)
 
 		del_node = del_node->next;
 	}
-	
+
 	// If both prev and next are NULL this is the only node in the list.
 	if (del_node->prev == NULL && del_node->next == NULL)
 	{
@@ -180,7 +182,7 @@ void deleteNode(bufList **head, int *x, int *y)
 		return;
 	}
 
-	// Adjust the linking of nodes depending on it being the last node or a node in the middle of the list. 
+	// Adjust the linking of nodes depending on it being the last node or a node in the middle of the list.
 	if (isEndNode)
 	{
 		del_node->prev->next = NULL;
@@ -195,7 +197,7 @@ void deleteNode(bufList **head, int *x, int *y)
 			*head = temp_node;
 			temp_node->x = del_node->x;
 			temp_node->y = del_node->y;
-			updateXYNodesDel(&temp_node); // (Temp comment) should send del_node, because now sending the next node. 
+			updateXYNodesDel(&temp_node); // (Temp comment) should send del_node, because now sending the next node.
 		}
 
 		if (del_node->prev != NULL && del_node->next != NULL)
@@ -251,7 +253,7 @@ void editTextFile(bufList *head)
 	{
 		printNodes(head);
 	}
-	
+
 	while ((ch = getch()) != ESC)
 	{
 		if (ch > NUL)
@@ -259,13 +261,16 @@ void editTextFile(bufList *head)
 			switch (ch)
 			{
 			case KEY_UP:
-				--y;
+				if (y != 0)
+				{
+					--y;
+				}
 				break;
 			case KEY_DOWN:
 				++y;
 				break;
 			case KEY_LEFT:
-				if (x > 0)
+				if (x != 0)
 				{
 					--x;
 				}
@@ -274,21 +279,24 @@ void editTextFile(bufList *head)
 				++x;
 				break;
 			case KEY_BACKSPACE:
+				if (x == 0 && y == 0)
+				{
+					break;
+				}
 				deleteNode(&head, &x, &y);
 				printNodes(head);
 				break;
-				/*
-				default:
-					addNode(ch, &head, x++, y);
-					printNodes(head);
-					if (ch == '\n')
-					{
-						++y;
-						x = 0;
-					}
-				*/
+			default:
+				addNode(ch, &head, x, y);
+				printNodes(head);
+				
+				++x;
+				if (ch == '\n')
+				{
+					++y;
+					x = 0;
+				}
 			}
-
 			move(y, x);
 		}
 	}
