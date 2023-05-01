@@ -10,9 +10,9 @@ typedef struct bufList
 
 bufList *createNodesFromBuffer(char *buffer, bufList *head, long fileSize);
 
-void updateXYNodesDel(bufList **head);
+void updateXYNodesDel(bufList **head, int *x, int *y);
 
-void updateXYNodesAdd(bufList **head, int x, int y);
+void updateXYNodesAdd(bufList **head, int *x, int *y);
 
 void addNode(int ch, bufList **head,
 			 int x, int y);
