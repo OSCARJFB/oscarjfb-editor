@@ -1,3 +1,6 @@
+#	Writen by: Oscar Bergström
+#   https://github.com/OSCARJFB
+
 cc = gcc
 #cflags = -Wall -Wextra -Werror -pedantic -std=c99
 cflags = -std=c99

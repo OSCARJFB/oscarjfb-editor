@@ -1,3 +1,8 @@
+/*
+    Writen by: Oscar Bergström
+    https://github.com/OSCARJFB
+*/
+
 #ifndef TEXTLIST_H
 #define TEXTLIST_H
 
@@ -10,22 +15,23 @@ typedef struct bufList
 
 bufList *createNodesFromBuffer(char *buffer, bufList *head, long fileSize);
 
-void updateXYNodesDel(bufList **head, int *x, int *y);
+void deleteAllNodes(bufList *head);
 
 void updateXYNodesAdd(bufList **head, int *x, int *y);
 
-void addNode(int ch, bufList **head,
-			 int x, int y);
+void updateXYNodesDel(bufList **head, int *x, int *y);
 
-void printNodes(bufList *head);
+void addNode(bufList **head, int ch, 
+			 int x, int y);
 
 void deleteNode(bufList **head, int *x, int *y);
 
-void getLastCoordinates(bufList *head, int *x, int *y);
+void printNodes(bufList *head);
+
+void getEndNodeCoordinates(bufList *head, int *x, int *y);
 
 void editTextFile(bufList *head);
 
-void deleteAllNodes(bufList *head);
-
 void testFunctionPrintAllNode(bufList *head);
+
 #endif // TEXTLIST_H
