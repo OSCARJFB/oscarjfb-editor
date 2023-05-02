@@ -1,3 +1,8 @@
+/*
+    Writen by: Oscar Bergström
+    https://github.com/OSCARJFB
+*/
+
 #include "textList.h"
 #include <stdlib.h>
 #include <stdio.h>
@@ -10,7 +15,7 @@ bufList *createNodesFromBuffer(char *buffer, bufList *head, long fileSize)
 
 	for (int i = 0; i < fileSize; ++i)
 	{
-		addNode(buffer[i], &head,
+		addNode(&head, buffer[i],
 				x, y);
 
 		if (buffer[i] == '\n')
@@ -26,10 +31,35 @@ bufList *createNodesFromBuffer(char *buffer, bufList *head, long fileSize)
 	return head;
 }
 
+void deleteAllNodes(bufList *head)
+{
+	bufList *temp = NULL;
+	while (head != NULL)
+	{
+		temp = head;
+		head = head->next;
+		free(temp);
+	}
+
+	temp = NULL;
+	head = NULL;
+}
+
+void updateXYNodesAdd(bufList **head, int *x, int *y)
+{
+}
+
 void updateXYNodesDel(bufList **head, int *x, int *y)
 {
 	int lx = (*head)->x;
 	int ly = (*head)->y;
+
+	// Set cursor position.
+	if((*head)->prev != NULL)
+	{
+		*x = (*head)->prev->x;
+		*y = (*head)->prev->y;
+	}
 
 	// Newline character
 	if ((*head)->ch == '\n')
@@ -54,8 +84,6 @@ void updateXYNodesDel(bufList **head, int *x, int *y)
 			++lx;
 		}
 		
-		*x = lx + 1;
-		*y = ly;
 		return;
 	}
 
@@ -73,7 +101,7 @@ void updateXYNodesDel(bufList **head, int *x, int *y)
 	*y = ly;
 }
 
-void addNode(int ch, bufList **head,
+void addNode(bufList **head, int ch, 
 			 int x, int y)
 {
 	if (*head == NULL)
@@ -118,37 +146,6 @@ void addNode(int ch, bufList **head,
 	prev_node = last_node;
 	last_node->next = new_node;
 	new_node->prev = prev_node;
-}
-
-void printNodes(bufList *head)
-{
-	clear();
-	while (head != NULL)
-	{
-		mvwaddch(stdscr, head->y, head->x, head->ch);
-		head = head->next;
-	}
-	refresh();
-}
-
-void testFunctionPrintAllNode(bufList *head)
-{
-	endwin();
-	printf("\n\n");
-	for (int i = 1; head != NULL; ++i)
-	{
-		printf("Item:%d ", i);
-		if (head->next == NULL)
-			printf("next == NULL");
-		if (head->prev == NULL)
-			printf("prev == NULL");
-
-		printf("\n");
-
-		head = head->next;
-	}
-
-	exit(1);
 }
 
 void deleteNode(bufList **head, int *x, int *y)
@@ -231,7 +228,18 @@ void deleteNode(bufList **head, int *x, int *y)
 	del_node = NULL;
 }
 
-void getLastCoordinates(bufList *head, int *x, int *y)
+void printNodes(bufList *head)
+{
+	clear();
+	while (head != NULL)
+	{
+		mvwaddch(stdscr, head->y, head->x, head->ch);
+		head = head->next;
+	}
+	refresh();
+}
+
+void getEndNodeCoordinates(bufList *head, int *x, int *y)
 {
 	while (head != NULL)
 	{
@@ -253,7 +261,7 @@ void getLastCoordinates(bufList *head, int *x, int *y)
 void editTextFile(bufList *head)
 {
 	int ch = 0x00, x = 0, y = 0;
-	getLastCoordinates(head, &x, &y);
+	getEndNodeCoordinates(head, &x, &y);
 
 	initscr();
 	nodelay(stdscr, 1);
@@ -298,7 +306,8 @@ void editTextFile(bufList *head)
 				printNodes(head);
 				break;
 			default:
-				addNode(ch, &head, x, y);
+				addNode(&head, ch, 
+						x, y);
 				printNodes(head);
 
 				++x;
@@ -315,16 +324,24 @@ void editTextFile(bufList *head)
 	endwin();
 }
 
-void deleteAllNodes(bufList *head)
+// TEST FUNCTIONS
+
+void testFunctionPrintAllNode(bufList *head)
 {
-	bufList *temp = NULL;
-	while (head != NULL)
+	endwin();
+	printf("\n\n");
+	for (int i = 1; head != NULL; ++i)
 	{
-		temp = head;
+		printf("Item:%d ", i);
+		if (head->next == NULL)
+			printf("next == NULL");
+		if (head->prev == NULL)
+			printf("prev == NULL");
+
+		printf("\n");
+
 		head = head->next;
-		free(temp);
 	}
 
-	temp = NULL;
-	head = NULL;
+	exit(1);
 }

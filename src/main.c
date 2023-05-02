@@ -1,3 +1,8 @@
+/*
+    Writen by: Oscar Bergström
+    https://github.com/OSCARJFB
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include "textList.h"
