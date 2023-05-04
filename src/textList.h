@@ -32,6 +32,10 @@ void getEndNodeCoordinates(bufList *head, int *x, int *y);
 
 void editTextFile(bufList *head);
 
-void testFunctionPrintAllNode(bufList *head);
+// DEBUG functions, used to examine the linked list. 
+
+void DEBUG_PRINT_ALL_NODES_POINTER(bufList *head);
+
+void DEBUG_PRINT_ALL_NODES_VALUE(bufList *head);
 
 #endif // TEXTLIST_H

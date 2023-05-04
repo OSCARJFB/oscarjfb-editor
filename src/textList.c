@@ -47,6 +47,7 @@ void deleteAllNodes(bufList *head)
 
 void updateXYNodesAdd(bufList **head, int *x, int *y)
 {
+	// Here we should update x and y when a value is added somewhere between start and end of the list.
 }
 
 void updateXYNodesDel(bufList **head, int *x, int *y)
@@ -104,6 +105,7 @@ void updateXYNodesDel(bufList **head, int *x, int *y)
 void addNode(bufList **head, int ch, 
 			 int x, int y)
 {
+	// Currently there is no list existing. 
 	if (*head == NULL)
 	{
 		*head = malloc(sizeof(bufList));
@@ -122,6 +124,7 @@ void addNode(bufList **head, int ch,
 		return;
 	}
 
+	// Create a new node and add base values, depending on parameter input. 
 	bufList *new_node = malloc(sizeof(bufList));
 	if (new_node == NULL)
 	{
@@ -135,14 +138,28 @@ void addNode(bufList **head, int ch,
 	new_node->next = NULL;
 	new_node->prev = NULL;
 
-	bufList *last_node = *head;
-	bufList *prev_node = NULL;
+	bufList *last_node = *head, *prev_node = NULL;
 
+	// Find the last node in the list. 
 	while (last_node->next != NULL)
 	{
+		// If added at cursor position, link the new node between the old nodes. 
+		if(last_node->x == x && last_node->y == y)
+		{	
+			last_node->prev->next = new_node;
+			new_node->prev = last_node->prev; 
+			new_node->next = last_node;
+			new_node = last_node->prev;
+			//DEBUG_PRINT_ALL_NODES_POINTER(*head); 
+			DEBUG_PRINT_ALL_NODES_VALUE(*head); 
+			//updateXYNodesAdd();
+			return;
+		}
+
 		last_node = last_node->next;
 	}
 
+	// Add the new node to the end of the list. 
 	prev_node = last_node;
 	last_node->next = new_node;
 	new_node->prev = prev_node;
@@ -326,7 +343,7 @@ void editTextFile(bufList *head)
 
 // TEST FUNCTIONS
 
-void testFunctionPrintAllNode(bufList *head)
+void DEBUG_PRINT_ALL_NODES_POINTER(bufList *head)
 {
 	endwin();
 	printf("\n\n");
@@ -343,5 +360,23 @@ void testFunctionPrintAllNode(bufList *head)
 		head = head->next;
 	}
 
+	deleteAllNodes(head); 
+	exit(1);
+}
+
+
+void DEBUG_PRINT_ALL_NODES_VALUE(bufList *head)
+{
+	endwin();
+	printf("\n\n");
+	for (int i = 1; head != NULL; ++i)
+	{
+		printf("Item:%d Char:%c x:%d y:%d", i, head->ch, head->x, head->y);
+		printf("\n");
+
+		head = head->next;
+	}
+
+	deleteAllNodes(head); 
 	exit(1);
 }
