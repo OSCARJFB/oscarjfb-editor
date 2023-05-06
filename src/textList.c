@@ -13,7 +13,7 @@ bufList *createNodesFromBuffer(char *buffer, bufList *head, long fileSize)
 {
 	int x = 0, y = 0;
 
-	// Add each character from the read file to the list. 
+	// Add each character from the read file to the list.
 	for (int i = 0; i < fileSize; ++i)
 	{
 		addNode(&head, buffer[i],
@@ -51,12 +51,6 @@ void updateXYNodesAdd(bufList **head)
 {
 	int lx = (*head)->x;
 	int ly = (*head)->y;
-	
-	//if((*head)->next->next != NULL)
-	//{
-	//	*x = (*head)->next->next->x;
-	//	*y = (*head)->next->next->y;
-	//}
 
 	// Update x and y of all remaining nodes meanwhile the node is not NULL.
 	for ((*head) = (*head)->next;
@@ -75,17 +69,10 @@ void updateXYNodesAdd(bufList **head)
 	}
 }
 
-void updateXYNodesDel(bufList **head, int *x, int *y)
+void updateXYNodesDel(bufList **head)
 {
 	int lx = (*head)->x;
 	int ly = (*head)->y;
-
-	// Set cursor position.
-	if ((*head)->prev != NULL)
-	{
-		*x = (*head)->prev->x;
-		*y = (*head)->prev->y;
-	}
 
 	// This flow will execute if it is a newline character
 	if ((*head)->ch == '\n')
@@ -122,9 +109,6 @@ void updateXYNodesDel(bufList **head, int *x, int *y)
 		(*head)->y = ly;
 		++lx;
 	}
-
-	*x = lx + 1;
-	*y = ly;
 }
 
 void addNode(bufList **head, int ch,
@@ -173,7 +157,7 @@ void addNode(bufList **head, int ch,
 			new_node->prev = last_node->prev;
 			new_node->next = last_node;
 			new_node = last_node->prev;
-			
+
 			updateXYNodesAdd(&new_node);
 			return;
 		}
@@ -190,9 +174,8 @@ void addNode(bufList **head, int ch,
 void deleteNode(bufList **head, int *x, int *y)
 {
 	// We can't free/delete a node which is NULL.
-	if (*head == NULL || (*x == 0 && *y == 0))
+	if (*head == NULL)
 	{
-		*x = *y = 0;
 		return;
 	}
 
@@ -244,7 +227,6 @@ void deleteNode(bufList **head, int *x, int *y)
 			*head = temp_node;
 			temp_node->x = del_node->x;
 			temp_node->y = del_node->y;
-			updateXYNodesDel(&temp_node, x, y);
 		}
 
 		if (del_node->prev != NULL && del_node->next != NULL)
@@ -252,8 +234,9 @@ void deleteNode(bufList **head, int *x, int *y)
 			temp_node = del_node;
 			temp_node->prev->next = temp_node->next;
 			temp_node->next->prev = temp_node->prev;
-			updateXYNodesDel(&temp_node, x, y);
 		}
+
+		updateXYNodesDel(&temp_node);
 	}
 
 	if (del_node == NULL)
@@ -281,7 +264,7 @@ void printNodes(bufList *head)
 
 void getEndNodeCoordinates(bufList *head, int *x, int *y)
 {
-	// Will find the last node and set its x and y value to be the cursor position. 
+	// Will find the last node and set its x and y value to be the cursor position.
 	while (head != NULL)
 	{
 		if (head->next == NULL)
@@ -292,7 +275,7 @@ void getEndNodeCoordinates(bufList *head, int *x, int *y)
 		head = head->next;
 	}
 
-	if(head != NULL)
+	if (head != NULL)
 	{
 		*x = head->x + 1;
 		*y = head->y;
@@ -348,23 +331,15 @@ void editTextFile(bufList *head)
 				}
 				deleteNode(&head, &x, &y);
 				printNodes(head);
-				//--x;
-				//if (ch == '\n')
-				//{
-				//	--y;
-				//	x = 0;
-				//}
-
 				break;
-			case 'b': 
-				DEBUG_PRINT_ALL_NODES_VALUE_NO_EXIT(head);
+			case 'b':
+				DEBUG_PRINT_ALL_NODES_VALUES_AND_CURSOR_NO_EXIT(head, x, y);
 				printNodes(head);
-				break; 
+				break;
 			default:
 				addNode(&head, ch,
 						&x, &y);
 				printNodes(head);
-
 				++x;
 				if (ch == '\n')
 				{
@@ -372,6 +347,7 @@ void editTextFile(bufList *head)
 					x = 0;
 				}
 			}
+			
 			move(y, x);
 		}
 	}
@@ -416,11 +392,11 @@ void DEBUG_PRINT_ALL_NODES_VALUE(bufList *head)
 	exit(1);
 }
 
-void DEBUG_PRINT_ALL_NODES_VALUE_NO_EXIT(bufList *head)
+void DEBUG_PRINT_ALL_NODES_VALUES_AND_CURSOR_NO_EXIT(bufList *head, int x, int y)
 {
 	clear();
-
-	while(getch() != 'b')
+	printw("Cursor is at: x%d y%d\n", x, y);
+	while (getch() != 'b')
 	{
 		for (int i = 1; head != NULL; ++i)
 		{
@@ -428,9 +404,7 @@ void DEBUG_PRINT_ALL_NODES_VALUE_NO_EXIT(bufList *head)
 			printw("Item:%d Char:%c x:%d y:%d\n", i, head->ch, head->x, head->y);
 			head = head->next;
 		}
-
 	}
 
 	refresh();
 }
-

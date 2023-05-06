@@ -19,7 +19,7 @@ void deleteAllNodes(bufList *head);
 
 void updateXYNodesAdd(bufList **head);
 
-void updateXYNodesDel(bufList **head, int *x, int *y);
+void updateXYNodesDel(bufList **head);
 
 void addNode(bufList **head, int ch, 
 			 int *x, int *y);
@@ -38,6 +38,6 @@ void DEBUG_PRINT_ALL_NODES_POINTER(bufList *head);
 
 void DEBUG_PRINT_ALL_NODES_VALUE(bufList *head);
 
-void DEBUG_PRINT_ALL_NODES_VALUE_NO_EXIT(bufList *head);
+void DEBUG_PRINT_ALL_NODES_VALUES_AND_CURSOR_NO_EXIT(bufList *head, int x, int y);
 
 #endif // TEXTLIST_H
