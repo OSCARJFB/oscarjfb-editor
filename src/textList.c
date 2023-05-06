@@ -11,22 +11,22 @@
 
 bufList *createNodesFromBuffer(char *buffer, bufList *head, long fileSize)
 {
-	int x = 0, y = 0;
+	coordinates xy;
+	xy.x = xy.y = 0;
 
 	// Add each character from the read file to the list.
 	for (int i = 0; i < fileSize; ++i)
 	{
-		addNode(&head, buffer[i],
-				&x, &y);
+		addNode(&head, buffer[i], xy);
 
 		if (buffer[i] == '\n')
 		{
-			++y;
-			x = 0;
+			++xy.y;
+			xy.x = 0;
 			continue;
 		}
 
-		++x;
+		++xy.x;
 	}
 
 	return head;
@@ -111,8 +111,7 @@ void updateXYNodesDel(bufList **head)
 	}
 }
 
-void addNode(bufList **head, int ch,
-			 int *x, int *y)
+coordinates addNode(bufList **head, int ch, coordinates xy)
 {
 	// Currently there is no list existing.
 	if (*head == NULL)
@@ -120,27 +119,27 @@ void addNode(bufList **head, int ch,
 		*head = malloc(sizeof(bufList));
 		if (*head == NULL)
 		{
-			return;
+			return xy;
 		}
 
-		(*head)->x = *x;
-		(*head)->y = *y;
+		(*head)->x = xy.x;
+		(*head)->y = xy.y;
 		(*head)->ch = ch;
 		(*head)->next = NULL;
 		(*head)->prev = NULL;
 
-		return;
+		return xy;
 	}
 
 	// Create a new node and add base values, depending on parameter input.
 	bufList *new_node = malloc(sizeof(bufList));
 	if (new_node == NULL)
 	{
-		return;
+		return xy;
 	}
 
-	new_node->x = *x;
-	new_node->y = *y;
+	new_node->x = xy.x;
+	new_node->y = xy.y;
 	new_node->ch = ch;
 	new_node->next = NULL;
 	new_node->prev = NULL;
@@ -151,7 +150,7 @@ void addNode(bufList **head, int ch,
 	while (last_node->next != NULL)
 	{
 		// If added at cursor position, link the new node inbetween the old nodes.
-		if (last_node->x == *x && last_node->y == *y)
+		if (last_node->x == xy.x && last_node->y == xy.y)
 		{
 			last_node->prev->next = new_node;
 			new_node->prev = last_node->prev;
@@ -159,7 +158,7 @@ void addNode(bufList **head, int ch,
 			new_node = last_node->prev;
 
 			updateXYNodesAdd(&new_node);
-			return;
+			return xy;
 		}
 
 		last_node = last_node->next;
@@ -171,12 +170,12 @@ void addNode(bufList **head, int ch,
 	new_node->prev = prev_node;
 }
 
-void deleteNode(bufList **head, int *x, int *y)
+coordinates deleteNode(bufList **head, coordinates xy)
 {
 	// We can't free/delete a node which is NULL.
 	if (*head == NULL)
 	{
-		return;
+		return xy;
 	}
 
 	bool isEndNode = true;
@@ -186,7 +185,7 @@ void deleteNode(bufList **head, int *x, int *y)
 	while (del_node->next != NULL)
 	{
 		// Is a node in the middle of the list.
-		if (del_node->x == *x && del_node->y == *y)
+		if (del_node->x == xy.x && del_node->y == xy.y)
 		{
 			del_node = del_node->prev;
 			isEndNode = false;
@@ -194,7 +193,7 @@ void deleteNode(bufList **head, int *x, int *y)
 		}
 
 		// Is the node just before the last node in the list.
-		if (del_node->next->x == *x && del_node->next->y == *y && del_node->next->next == NULL)
+		if (del_node->next->x == xy.x && del_node->next->y == xy.y && del_node->next->next == NULL)
 		{
 			isEndNode = false;
 			break;
@@ -206,10 +205,9 @@ void deleteNode(bufList **head, int *x, int *y)
 	// If both prev and next are NULL this is the only node in the list.
 	if (del_node->prev == NULL && del_node->next == NULL)
 	{
-		*x = *y = 0;
 		free(*head);
 		*head = NULL;
-		return;
+		return xy;
 	}
 
 	// Adjust the linking of nodes depending on it being the last node or a node in the middle of the list.
@@ -219,16 +217,6 @@ void deleteNode(bufList **head, int *x, int *y)
 	}
 	else if (!isEndNode)
 	{
-		if (del_node->prev == NULL && del_node->next != NULL)
-		{
-			temp_node = del_node;
-			temp_node = temp_node->next;
-			temp_node->prev = NULL;
-			*head = temp_node;
-			temp_node->x = del_node->x;
-			temp_node->y = del_node->y;
-		}
-
 		if (del_node->prev != NULL && del_node->next != NULL)
 		{
 			temp_node = del_node;
@@ -236,18 +224,27 @@ void deleteNode(bufList **head, int *x, int *y)
 			temp_node->next->prev = temp_node->prev;
 		}
 
+		// Bug here with the coordinates of the nodes.
+		if (del_node->prev == NULL && del_node->next != NULL)
+		{
+			temp_node = del_node->next;
+			temp_node->prev = NULL;
+			temp_node->next->x = temp_node->y = 0;
+			*head = temp_node;
+		}
+
 		updateXYNodesDel(&temp_node);
 	}
 
-	if (del_node == NULL)
+	if (del_node != NULL)
 	{
-		return;
+		xy.x = del_node->x;
+		xy.y = del_node->y;
+		free(del_node);
+		del_node = NULL;
 	}
 
-	*x = del_node->x;
-	*y = del_node->y;
-	free(del_node);
-	del_node = NULL;
+	return xy;
 }
 
 void printNodes(bufList *head)
@@ -262,8 +259,10 @@ void printNodes(bufList *head)
 	refresh();
 }
 
-void getEndNodeCoordinates(bufList *head, int *x, int *y)
+coordinates getEndNodeCoordinates(bufList *head)
 {
+	coordinates xy; 
+
 	// Will find the last node and set its x and y value to be the cursor position.
 	while (head != NULL)
 	{
@@ -277,9 +276,11 @@ void getEndNodeCoordinates(bufList *head, int *x, int *y)
 
 	if (head != NULL)
 	{
-		*x = head->x + 1;
-		*y = head->y;
+		xy.x = head->x + 1;
+		xy.y = head->y;
 	}
+
+	return xy;
 }
 
 #define ESC 0x1b
@@ -287,8 +288,8 @@ void getEndNodeCoordinates(bufList *head, int *x, int *y)
 
 void editTextFile(bufList *head)
 {
-	int ch = 0x00, x = 0, y = 0;
-	getEndNodeCoordinates(head, &x, &y);
+	coordinates xy = getEndNodeCoordinates(head);
+	int ch = 0x00;
 
 	initscr();
 	nodelay(stdscr, 1);
@@ -307,48 +308,47 @@ void editTextFile(bufList *head)
 			switch (ch)
 			{
 			case KEY_UP:
-				if (y != 0)
+				if (xy.y != 0)
 				{
-					--y;
+					--xy.y;
 				}
 				break;
 			case KEY_DOWN:
-				++y;
+				++xy.y;
 				break;
 			case KEY_LEFT:
-				if (x != 0)
+				if (xy.x != 0)
 				{
-					--x;
+					--xy.x;
 				}
 				break;
 			case KEY_RIGHT:
-				++x;
+				++xy.x;
 				break;
 			case KEY_BACKSPACE:
-				if (x == 0 && y == 0)
+				if (xy.x == 0 && xy.y == 0)
 				{
 					break;
 				}
-				deleteNode(&head, &x, &y);
+				xy = deleteNode(&head, xy);
 				printNodes(head);
 				break;
 			case 'b':
-				DEBUG_PRINT_ALL_NODES_VALUES_AND_CURSOR_NO_EXIT(head, x, y);
+				DEBUG_PRINT_ALL_NODES_VALUES_AND_CURSOR_NO_EXIT(head, xy.x, xy.y);
 				printNodes(head);
 				break;
 			default:
-				addNode(&head, ch,
-						&x, &y);
+				xy = addNode(&head, ch, xy);
 				printNodes(head);
-				++x;
+				++xy.x;
 				if (ch == '\n')
 				{
-					++y;
-					x = 0;
+					++xy.y;
+					xy.x = 0;
 				}
 			}
-			
-			move(y, x);
+
+			wmove(stdscr, xy.y, xy.x);
 		}
 	}
 

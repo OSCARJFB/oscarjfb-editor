@@ -1,4 +1,4 @@
 Hello i'm an example file.
 
 This is some text!
-more text
+This is some text!

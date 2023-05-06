@@ -1,6 +1,6 @@
 /*
-    Writen by: Oscar Bergström
-    https://github.com/OSCARJFB
+	Writen by: Oscar Bergström
+	https://github.com/OSCARJFB
 */
 
 #ifndef TEXTLIST_H
@@ -13,6 +13,11 @@ typedef struct bufList
 	struct bufList *prev;
 } bufList;
 
+typedef struct coordinates
+{
+	int x, y;
+} coordinates;
+
 bufList *createNodesFromBuffer(char *buffer, bufList *head, long fileSize);
 
 void deleteAllNodes(bufList *head);
@@ -21,18 +26,17 @@ void updateXYNodesAdd(bufList **head);
 
 void updateXYNodesDel(bufList **head);
 
-void addNode(bufList **head, int ch, 
-			 int *x, int *y);
+coordinates addNode(bufList **head, int ch, coordinates xy);
 
-void deleteNode(bufList **head, int *x, int *y);
+coordinates deleteNode(bufList **head, coordinates xy);
+
+coordinates getEndNodeCoordinates(bufList *head);
 
 void printNodes(bufList *head);
 
-void getEndNodeCoordinates(bufList *head, int *x, int *y);
-
 void editTextFile(bufList *head);
 
-// DEBUG functions, used to examine the linked list. 
+// DEBUG functions, used to examine the linked list.
 
 void DEBUG_PRINT_ALL_NODES_POINTER(bufList *head);
 
