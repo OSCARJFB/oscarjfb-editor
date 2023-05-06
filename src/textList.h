@@ -17,12 +17,12 @@ bufList *createNodesFromBuffer(char *buffer, bufList *head, long fileSize);
 
 void deleteAllNodes(bufList *head);
 
-void updateXYNodesAdd(bufList **head, int *x, int *y);
+void updateXYNodesAdd(bufList **head);
 
 void updateXYNodesDel(bufList **head, int *x, int *y);
 
 void addNode(bufList **head, int ch, 
-			 int x, int y);
+			 int *x, int *y);
 
 void deleteNode(bufList **head, int *x, int *y);
 
@@ -37,5 +37,7 @@ void editTextFile(bufList *head);
 void DEBUG_PRINT_ALL_NODES_POINTER(bufList *head);
 
 void DEBUG_PRINT_ALL_NODES_VALUE(bufList *head);
+
+void DEBUG_PRINT_ALL_NODES_VALUE_NO_EXIT(bufList *head);
 
 #endif // TEXTLIST_H
