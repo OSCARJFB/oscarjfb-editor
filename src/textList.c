@@ -1,6 +1,6 @@
 /*
-    Writen by: Oscar Bergström
-    https://github.com/OSCARJFB
+	Writen by: Oscar Bergström
+	https://github.com/OSCARJFB
 */
 
 #include "textList.h"
@@ -11,21 +11,22 @@
 
 bufList *createNodesFromBuffer(char *buffer, bufList *head, long fileSize)
 {
-	int x = 0, y = 0;
+	coordinates xy;
+	xy.x = xy.y = 0;
 
+	// Add each character from the read file to the list.
 	for (int i = 0; i < fileSize; ++i)
 	{
-		addNode(&head, buffer[i],
-				x, y);
+		addNode(&head, buffer[i], xy);
 
 		if (buffer[i] == '\n')
 		{
-			++y;
-			x = 0;
+			++xy.y;
+			xy.x = 0;
 			continue;
 		}
 
-		++x;
+		++xy.x;
 	}
 
 	return head;
@@ -33,6 +34,7 @@ bufList *createNodesFromBuffer(char *buffer, bufList *head, long fileSize)
 
 void deleteAllNodes(bufList *head)
 {
+	// Delete and free every single node.
 	bufList *temp = NULL;
 	while (head != NULL)
 	{
@@ -45,24 +47,34 @@ void deleteAllNodes(bufList *head)
 	head = NULL;
 }
 
-void updateXYNodesAdd(bufList **head, int *x, int *y)
-{
-	// Here we should update x and y when a value is added somewhere between start and end of the list.
-}
-
-void updateXYNodesDel(bufList **head, int *x, int *y)
+void updateXYNodesAdd(bufList **head)
 {
 	int lx = (*head)->x;
 	int ly = (*head)->y;
 
-	// Set cursor position.
-	if((*head)->prev != NULL)
+	// Update x and y of all remaining nodes meanwhile the node is not NULL.
+	for ((*head) = (*head)->next;
+		 (*head) != NULL;
+		 (*head) = (*head)->next)
 	{
-		*x = (*head)->prev->x;
-		*y = (*head)->prev->y;
-	}
+		if ((*head)->ch == '\n')
+		{
+			++ly;
+			lx = 0;
+		}
 
-	// Newline character
+		++lx;
+		(*head)->x = lx;
+		(*head)->y = ly;
+	}
+}
+
+void updateXYNodesDel(bufList **head)
+{
+	int lx = (*head)->x;
+	int ly = (*head)->y;
+
+	// This flow will execute if it is a newline character
 	if ((*head)->ch == '\n')
 	{
 		lx = (*head)->x;
@@ -84,11 +96,11 @@ void updateXYNodesDel(bufList **head, int *x, int *y)
 			(*head)->x = lx;
 			++lx;
 		}
-		
+
 		return;
 	}
 
-	// Is on the same line
+	// This flow will be triggered if the change is on the same line.
 	for (*head = (*head)->next;
 		 *head != NULL && (*head)->ch != '\n';
 		 *head = (*head)->next)
@@ -97,81 +109,73 @@ void updateXYNodesDel(bufList **head, int *x, int *y)
 		(*head)->y = ly;
 		++lx;
 	}
-
-	*x = lx + 1;
-	*y = ly;
 }
 
-void addNode(bufList **head, int ch, 
-			 int x, int y)
+coordinates addNode(bufList **head, int ch, coordinates xy)
 {
-	// Currently there is no list existing. 
+	// Currently there is no list existing.
 	if (*head == NULL)
 	{
 		*head = malloc(sizeof(bufList));
 		if (*head == NULL)
 		{
-			puts("addNode: malloc(), couldn't allocate memory for node");
-			return;
+			return xy;
 		}
 
-		(*head)->x = x;
-		(*head)->y = y;
+		(*head)->x = xy.x;
+		(*head)->y = xy.y;
 		(*head)->ch = ch;
 		(*head)->next = NULL;
 		(*head)->prev = NULL;
 
-		return;
+		return xy;
 	}
 
-	// Create a new node and add base values, depending on parameter input. 
+	// Create a new node and add base values, depending on parameter input.
 	bufList *new_node = malloc(sizeof(bufList));
 	if (new_node == NULL)
 	{
-		puts("addNode: malloc(), couldn't allocate memory for node");
-		return;
+		return xy;
 	}
 
-	new_node->x = x;
-	new_node->y = y;
+	new_node->x = xy.x;
+	new_node->y = xy.y;
 	new_node->ch = ch;
 	new_node->next = NULL;
 	new_node->prev = NULL;
 
 	bufList *last_node = *head, *prev_node = NULL;
 
-	// Find the last node in the list. 
+	// Find the last node in the list.
 	while (last_node->next != NULL)
 	{
-		// If added at cursor position, link the new node between the old nodes. 
-		if(last_node->x == x && last_node->y == y)
-		{	
+		// If added at cursor position, link the new node inbetween the old nodes.
+		if (last_node->x == xy.x && last_node->y == xy.y)
+		{
 			last_node->prev->next = new_node;
-			new_node->prev = last_node->prev; 
+			new_node->prev = last_node->prev;
 			new_node->next = last_node;
 			new_node = last_node->prev;
-			//DEBUG_PRINT_ALL_NODES_POINTER(*head); 
-			DEBUG_PRINT_ALL_NODES_VALUE(*head); 
-			//updateXYNodesAdd();
-			return;
+
+			updateXYNodesAdd(&new_node);
+			return xy;
 		}
 
 		last_node = last_node->next;
 	}
 
-	// Add the new node to the end of the list. 
+	// Add the new node to the end of the list.
 	prev_node = last_node;
 	last_node->next = new_node;
 	new_node->prev = prev_node;
 }
 
-void deleteNode(bufList **head, int *x, int *y)
+coordinates deleteNode(bufList **head, coordinates xy)
 {
-	// We can't free a node which is NULL.
-	if (*head == NULL || (*x == 0 && *y == 0))
+	// We can't free/delete a node which is NULL.
+	if (*head == NULL)
 	{
-		*x = *y = 0;
-		return;
+		return xy;
 	}
 
 	bool isEndNode = true;
@@ -181,7 +185,7 @@ void deleteNode(bufList **head, int *x, int *y)
 	while (del_node->next != NULL)
 	{
 		// Is a node in the middle of the list.
-		if (del_node->x == *x && del_node->y == *y)
+		if (del_node->x == xy.x && del_node->y == xy.y)
 		{
 			del_node = del_node->prev;
 			isEndNode = false;
@@ -189,7 +193,7 @@ void deleteNode(bufList **head, int *x, int *y)
 		}
 
 		// Is the node just before the last node in the list.
-		if (del_node->next->x == *x && del_node->next->y == *y && del_node->next->next == NULL)
+		if (del_node->next->x == xy.x && del_node->next->y == xy.y && del_node->next->next == NULL)
 		{
 			isEndNode = false;
 			break;
@@ -201,10 +205,9 @@ void deleteNode(bufList **head, int *x, int *y)
 	// If both prev and next are NULL this is the only node in the list.
 	if (del_node->prev == NULL && del_node->next == NULL)
 	{
-		*x = *y = 0;
 		free(*head);
 		*head = NULL;
-		return;
+		return xy;
 	}
 
 	// Adjust the linking of nodes depending on it being the last node or a node in the middle of the list.
@@ -214,39 +217,39 @@ void deleteNode(bufList **head, int *x, int *y)
 	}
 	else if (!isEndNode)
 	{
-		if (del_node->prev == NULL && del_node->next != NULL)
-		{
-			temp_node = del_node;
-			temp_node = temp_node->next;
-			temp_node->prev = NULL;
-			*head = temp_node;
-			temp_node->x = del_node->x;
-			temp_node->y = del_node->y;
-			updateXYNodesDel(&temp_node, x, y); 
-		}
-
 		if (del_node->prev != NULL && del_node->next != NULL)
 		{
 			temp_node = del_node;
 			temp_node->prev->next = temp_node->next;
 			temp_node->next->prev = temp_node->prev;
-			updateXYNodesDel(&temp_node, x, y);
 		}
+
+		// Bug here with the coordinates of the nodes.
+		if (del_node->prev == NULL && del_node->next != NULL)
+		{
+			temp_node = del_node->next;
+			temp_node->prev = NULL;
+			temp_node->next->x = temp_node->y = 0;
+			*head = temp_node;
+		}
+
+		updateXYNodesDel(&temp_node);
 	}
 
-	if (del_node == NULL)
+	if (del_node != NULL)
 	{
-		return;
+		xy.x = del_node->x;
+		xy.y = del_node->y;
+		free(del_node);
+		del_node = NULL;
 	}
 
-	*x = del_node->x;
-	*y = del_node->y;
-	free(del_node);
-	del_node = NULL;
+	return xy;
 }
 
 void printNodes(bufList *head)
 {
+	// Print the nodes at x and y position.
 	clear();
 	while (head != NULL)
 	{
@@ -256,8 +259,11 @@ void printNodes(bufList *head)
 	refresh();
 }
 
-void getEndNodeCoordinates(bufList *head, int *x, int *y)
+coordinates getEndNodeCoordinates(bufList *head)
 {
+	coordinates xy; 
+
+	// Will find the last node and set its x and y value to be the cursor position.
 	while (head != NULL)
 	{
 		if (head->next == NULL)
@@ -268,8 +274,13 @@ void getEndNodeCoordinates(bufList *head, int *x, int *y)
 		head = head->next;
 	}
 
-	*x = head->x + 1;
-	*y = head->y;
+	if (head != NULL)
+	{
+		xy.x = head->x + 1;
+		xy.y = head->y;
+	}
+
+	return xy;
 }
 
 #define ESC 0x1b
@@ -277,8 +288,8 @@ void getEndNodeCoordinates(bufList *head, int *x, int *y)
 
 void editTextFile(bufList *head)
 {
-	int ch = 0x00, x = 0, y = 0;
-	getEndNodeCoordinates(head, &x, &y);
+	coordinates xy = getEndNodeCoordinates(head);
+	int ch = 0x00;
 
 	initscr();
 	nodelay(stdscr, 1);
@@ -297,44 +308,47 @@ void editTextFile(bufList *head)
 			switch (ch)
 			{
 			case KEY_UP:
-				if (y != 0)
+				if (xy.y != 0)
 				{
-					--y;
+					--xy.y;
 				}
 				break;
 			case KEY_DOWN:
-				++y;
+				++xy.y;
 				break;
 			case KEY_LEFT:
-				if (x != 0)
+				if (xy.x != 0)
 				{
-					--x;
+					--xy.x;
 				}
 				break;
 			case KEY_RIGHT:
-				++x;
+				++xy.x;
 				break;
 			case KEY_BACKSPACE:
-				if (x == 0 && y == 0)
+				if (xy.x == 0 && xy.y == 0)
 				{
 					break;
 				}
-				deleteNode(&head, &x, &y);
+				xy = deleteNode(&head, xy);
+				printNodes(head);
+				break;
+			case 'b':
+				DEBUG_PRINT_ALL_NODES_VALUES_AND_CURSOR_NO_EXIT(head, xy.x, xy.y);
 				printNodes(head);
 				break;
 			default:
-				addNode(&head, ch, 
-						x, y);
+				xy = addNode(&head, ch, xy);
 				printNodes(head);
-
-				++x;
+				++xy.x;
 				if (ch == '\n')
 				{
-					++y;
-					x = 0;
+					++xy.y;
+					xy.x = 0;
 				}
 			}
-			move(y, x);
+
+			wmove(stdscr, xy.y, xy.x);
 		}
 	}
 
@@ -353,17 +367,14 @@ void DEBUG_PRINT_ALL_NODES_POINTER(bufList *head)
 		if (head->next == NULL)
 			printf("next == NULL");
 		if (head->prev == NULL)
-			printf("prev == NULL");
-
-		printf("\n");
+			printf("prev == NULL\n");
 
 		head = head->next;
 	}
 
-	deleteAllNodes(head); 
+	deleteAllNodes(head);
 	exit(1);
 }
-
 
 void DEBUG_PRINT_ALL_NODES_VALUE(bufList *head)
 {
@@ -371,12 +382,29 @@ void DEBUG_PRINT_ALL_NODES_VALUE(bufList *head)
 	printf("\n\n");
 	for (int i = 1; head != NULL; ++i)
 	{
-		printf("Item:%d Char:%c x:%d y:%d", i, head->ch, head->x, head->y);
-		printf("\n");
+		head->ch = head->ch == '\n' ? ' ' : head->ch;
+		printf("Item:%d Char:%c x:%d y:%d\n", i, head->ch, head->x, head->y);
 
 		head = head->next;
 	}
 
-	deleteAllNodes(head); 
+	deleteAllNodes(head);
 	exit(1);
+}
+
+void DEBUG_PRINT_ALL_NODES_VALUES_AND_CURSOR_NO_EXIT(bufList *head, int x, int y)
+{
+	clear();
+	printw("Cursor is at: x%d y%d\n", x, y);
+	while (getch() != 'b')
+	{
+		for (int i = 1; head != NULL; ++i)
+		{
+			head->ch = head->ch == '\n' ? ' ' : head->ch;
+			printw("Item:%d Char:%c x:%d y:%d\n", i, head->ch, head->x, head->y);
+			head = head->next;
+		}
+	}
+
+	refresh();
 }
