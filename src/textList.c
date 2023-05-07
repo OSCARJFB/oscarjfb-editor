@@ -205,6 +205,8 @@ coordinates deleteNode(bufList **head, coordinates xy)
 	// If both prev and next are NULL this is the only node in the list.
 	if (del_node->prev == NULL && del_node->next == NULL)
 	{
+		xy.x = (*head)->x;
+		xy.y = (*head)->y;
 		free(*head);
 		*head = NULL;
 		return xy;
@@ -217,19 +219,16 @@ coordinates deleteNode(bufList **head, coordinates xy)
 	}
 	else if (!isEndNode)
 	{
+		temp_node = del_node;
+
 		if (del_node->prev != NULL && del_node->next != NULL)
 		{
-			temp_node = del_node;
 			temp_node->prev->next = temp_node->next;
 			temp_node->next->prev = temp_node->prev;
 		}
-
-		// Bug here with the coordinates of the nodes.
-		if (del_node->prev == NULL && del_node->next != NULL)
+		else if (del_node->prev == NULL && del_node->next != NULL)
 		{
-			temp_node = del_node->next;
-			temp_node->prev = NULL;
-			temp_node->next->x = temp_node->y = 0;
+			temp_node->next->prev = NULL;
 			*head = temp_node;
 		}
 
