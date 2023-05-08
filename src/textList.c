@@ -102,12 +102,22 @@ void updateXYNodesDel(bufList **head)
 
 	// This flow will be triggered if the change is on the same line.
 	for (*head = (*head)->next;
-		 *head != NULL && (*head)->ch != '\n';
+		 *head != NULL && (*head)->ch;
 		 *head = (*head)->next)
 	{
 		(*head)->x = lx;
 		(*head)->y = ly;
-		++lx;
+
+		// Bug hereb
+		if((*head)->ch == '\n')
+		{
+			++ly;
+			lx = 0; 
+		} 
+		else 
+		{
+			++lx;
+		}
 	}
 }
 
@@ -396,10 +406,10 @@ void DEBUG_PRINT_ALL_NODES_VALUES_AND_CURSOR_NO_EXIT(bufList *head, int x, int y
 	clear();
 	printw("Cursor is at: x%d y%d\n", x, y);
 	while (getch() != 'b')
-	{
+	{  
 		for (int i = 1; head != NULL; ++i)
 		{
-			head->ch = head->ch == '\n' ? ' ' : head->ch;
+			head->ch = head->ch == '\n' ? 'n' : head->ch;
 			printw("Item:%d Char:%c x:%d y:%d\n", i, head->ch, head->x, head->y);
 			head = head->next;
 		}
@@ -407,3 +417,5 @@ void DEBUG_PRINT_ALL_NODES_VALUES_AND_CURSOR_NO_EXIT(bufList *head, int x, int y
 
 	refresh();
 }
+
+

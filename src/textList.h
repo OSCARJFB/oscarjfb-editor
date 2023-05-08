@@ -36,6 +36,8 @@ void printNodes(bufList *head);
 
 void editTextFile(bufList *head);
 
+void printValue(); 
+
 // DEBUG functions, used to examine the linked list.
 
 void DEBUG_PRINT_ALL_NODES_POINTER(bufList *head);
