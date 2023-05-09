@@ -83,7 +83,7 @@ void updateXYNodesDel(bufList **head)
 			if ((*head)->ch == '\n')
 			{
 				++ly;
-				lx = -1;
+				lx = 0;
 				for (bufList *line_node = (*head)->next;
 					 line_node != NULL && line_node->y == ly;
 					 line_node = line_node->next)
@@ -108,7 +108,6 @@ void updateXYNodesDel(bufList **head)
 		(*head)->x = lx;
 		(*head)->y = ly;
 
-		// Bug hereb
 		if((*head)->ch == '\n')
 		{
 			++ly;
@@ -178,6 +177,8 @@ coordinates addNode(bufList **head, int ch, coordinates xy)
 	prev_node = last_node;
 	last_node->next = new_node;
 	new_node->prev = prev_node;
+
+	return xy;
 }
 
 coordinates deleteNode(bufList **head, coordinates xy)
@@ -239,7 +240,7 @@ coordinates deleteNode(bufList **head, coordinates xy)
 		else if (del_node->prev == NULL && del_node->next != NULL)
 		{
 			temp_node->next->prev = NULL;
-			*head = temp_node;
+			*head = temp_node->next;
 		}
 
 		updateXYNodesDel(&temp_node);
@@ -317,19 +318,13 @@ void editTextFile(bufList *head)
 			switch (ch)
 			{
 			case KEY_UP:
-				if (xy.y != 0)
-				{
-					--xy.y;
-				}
+				xy.y = xy.y != 0 ? --xy.y : xy.y;
 				break;
 			case KEY_DOWN:
 				++xy.y;
 				break;
 			case KEY_LEFT:
-				if (xy.x != 0)
-				{
-					--xy.x;
-				}
+				xy.x = xy.x != 0 ? --xy.x : xy.x;
 				break;
 			case KEY_RIGHT:
 				++xy.x;
