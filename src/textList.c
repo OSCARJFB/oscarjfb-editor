@@ -53,7 +53,7 @@ void updateXYNodesAdd(bufList **head)
 	int ly = (*head)->y;
 
 	// Update x and y of all remaining nodes meanwhile the node is not NULL.
-	for ((*head) = (*head)->next;
+	for (*head = (*head)->next;
 		 (*head) != NULL;
 		 (*head) = (*head)->next)
 	{
@@ -108,43 +108,24 @@ void updateXYNodesDel(bufList **head)
 		(*head)->x = lx;
 		(*head)->y = ly;
 
-		if((*head)->ch == '\n')
+		if ((*head)->ch == '\n')
 		{
 			++ly;
-			lx = 0; 
-		} 
-		else 
+			lx = 0;
+		}
+		else
 		{
 			++lx;
 		}
 	}
 }
 
-coordinates addNode(bufList **head, int ch, coordinates xy)
+bufList *createNewNode(coordinates xy, int ch)
 {
-	// Currently there is no list existing.
-	if (*head == NULL)
-	{
-		*head = malloc(sizeof(bufList));
-		if (*head == NULL)
-		{
-			return xy;
-		}
-
-		(*head)->x = xy.x;
-		(*head)->y = xy.y;
-		(*head)->ch = ch;
-		(*head)->next = NULL;
-		(*head)->prev = NULL;
-
-		return xy;
-	}
-
-	// Create a new node and add base values, depending on parameter input.
 	bufList *new_node = malloc(sizeof(bufList));
-	if (new_node == NULL)
+	if(new_node == NULL)
 	{
-		return xy;
+		return NULL;
 	}
 
 	new_node->x = xy.x;
@@ -152,7 +133,21 @@ coordinates addNode(bufList **head, int ch, coordinates xy)
 	new_node->ch = ch;
 	new_node->next = NULL;
 	new_node->prev = NULL;
+	
+	return new_node; 
+}
 
+coordinates addNode(bufList **head, int ch, coordinates xy)
+{
+	// Currently there is no list existing.
+	if (*head == NULL)
+	{
+		*head = createNewNode(xy, ch); 
+		return xy;
+	}
+
+	// Create a new node and add base values, depending on parameter input.
+	bufList *new_node = createNewNode(xy, ch); 
 	bufList *last_node = *head, *prev_node = NULL;
 
 	// Find the last node in the list.
@@ -165,8 +160,10 @@ coordinates addNode(bufList **head, int ch, coordinates xy)
 			new_node->prev = last_node->prev;
 			new_node->next = last_node;
 			new_node = last_node->prev;
-
 			updateXYNodesAdd(&new_node);
+			
+			xy.x = last_node->x;
+			xy.y = last_node->y;
 			return xy;
 		}
 
@@ -177,7 +174,8 @@ coordinates addNode(bufList **head, int ch, coordinates xy)
 	prev_node = last_node;
 	last_node->next = new_node;
 	new_node->prev = prev_node;
-
+	xy.x = new_node->x + 1;
+	xy.y = new_node->y;
 	return xy;
 }
 
@@ -271,7 +269,7 @@ void printNodes(bufList *head)
 
 coordinates getEndNodeCoordinates(bufList *head)
 {
-	coordinates xy; 
+	coordinates xy;
 
 	// Will find the last node and set its x and y value to be the cursor position.
 	while (head != NULL)
@@ -330,10 +328,6 @@ void editTextFile(bufList *head)
 				++xy.x;
 				break;
 			case KEY_BACKSPACE:
-				if (xy.x == 0 && xy.y == 0)
-				{
-					break;
-				}
 				xy = deleteNode(&head, xy);
 				printNodes(head);
 				break;
@@ -344,12 +338,14 @@ void editTextFile(bufList *head)
 			default:
 				xy = addNode(&head, ch, xy);
 				printNodes(head);
+				/*
 				++xy.x;
 				if (ch == '\n')
 				{
 					++xy.y;
 					xy.x = 0;
 				}
+				*/
 			}
 
 			wmove(stdscr, xy.y, xy.x);
@@ -401,7 +397,7 @@ void DEBUG_PRINT_ALL_NODES_VALUES_AND_CURSOR_NO_EXIT(bufList *head, int x, int y
 	clear();
 	printw("Cursor is at: x%d y%d\n", x, y);
 	while (getch() != 'b')
-	{  
+	{
 		for (int i = 1; head != NULL; ++i)
 		{
 			head->ch = head->ch == '\n' ? 'n' : head->ch;
@@ -412,5 +408,3 @@ void DEBUG_PRINT_ALL_NODES_VALUES_AND_CURSOR_NO_EXIT(bufList *head, int x, int y
 
 	refresh();
 }
-
-
