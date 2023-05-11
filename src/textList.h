@@ -26,6 +26,8 @@ void updateXYNodesAdd(bufList **head);
 
 void updateXYNodesDel(bufList **head);
 
+bufList *createNewNode(coordinates xy, int ch);
+
 coordinates addNode(bufList **head, int ch, coordinates xy);
 
 coordinates deleteNode(bufList **head, coordinates xy);

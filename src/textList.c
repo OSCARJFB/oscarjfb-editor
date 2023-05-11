@@ -120,31 +120,12 @@ void updateXYNodesDel(bufList **head)
 	}
 }
 
-coordinates addNode(bufList **head, int ch, coordinates xy)
+bufList *createNewNode(coordinates xy, int ch)
 {
-	// Currently there is no list existing.
-	if (*head == NULL)
-	{
-		*head = malloc(sizeof(bufList));
-		if (*head == NULL)
-		{
-			return xy;
-		}
-
-		(*head)->x = xy.x;
-		(*head)->y = xy.y;
-		(*head)->ch = ch;
-		(*head)->next = NULL;
-		(*head)->prev = NULL;
-
-		return xy;
-	}
-
-	// Create a new node and add base values, depending on parameter input.
 	bufList *new_node = malloc(sizeof(bufList));
-	if (new_node == NULL)
+	if(new_node == NULL)
 	{
-		return xy;
+		return NULL;
 	}
 
 	new_node->x = xy.x;
@@ -152,7 +133,21 @@ coordinates addNode(bufList **head, int ch, coordinates xy)
 	new_node->ch = ch;
 	new_node->next = NULL;
 	new_node->prev = NULL;
+	
+	return new_node; 
+}
 
+coordinates addNode(bufList **head, int ch, coordinates xy)
+{
+	// Currently there is no list existing.
+	if (*head == NULL)
+	{
+		*head = createNewNode(xy, ch); 
+		return xy;
+	}
+
+	// Create a new node and add base values, depending on parameter input.
+	bufList *new_node = createNewNode(xy, ch); 
 	bufList *last_node = *head, *prev_node = NULL;
 
 	// Find the last node in the list.
@@ -165,8 +160,10 @@ coordinates addNode(bufList **head, int ch, coordinates xy)
 			new_node->prev = last_node->prev;
 			new_node->next = last_node;
 			new_node = last_node->prev;
-
 			updateXYNodesAdd(&new_node);
+			
+			xy.x = last_node->x;
+			xy.y = last_node->y;
 			return xy;
 		}
 
