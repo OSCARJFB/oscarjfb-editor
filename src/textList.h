@@ -22,7 +22,7 @@ bufList *createNodesFromBuffer(char *buffer, bufList *head, long fileSize);
 
 void deleteAllNodes(bufList *head);
 
-void updateXYNodesAdd(bufList **head);
+coordinates updateXYNodesAdd(bufList **head);
 
 void updateXYNodesDel(bufList **head);
 

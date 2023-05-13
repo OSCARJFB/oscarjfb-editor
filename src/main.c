@@ -127,7 +127,6 @@ int main(int argc, char **argv)
 	}
 
 	editTextFile(head);
-	deleteAllNodes(head);
 	freeBuffer(buffer);
 	closeFile(FP);
 
