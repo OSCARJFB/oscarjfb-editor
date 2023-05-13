@@ -47,10 +47,10 @@ void deleteAllNodes(bufList *head)
 	head = NULL;
 }
 
-void updateXYNodesAdd(bufList **head)
+coordinates updateXYNodesAdd(bufList **head)
 {
-	int lx = (*head)->x;
-	int ly = (*head)->y;
+	bufList *next_node = (*head)->next; 
+	int lx = (*head)->x, ly = (*head)->y;
 
 	// Update x and y of all remaining nodes meanwhile the node is not NULL.
 	for (*head = (*head)->next;
@@ -67,6 +67,9 @@ void updateXYNodesAdd(bufList **head)
 		(*head)->x = lx;
 		(*head)->y = ly;
 	}
+
+	coordinates xy = {next_node->x + 1, next_node->y};
+	return xy; 
 }
 
 void updateXYNodesDel(bufList **head)
@@ -160,11 +163,7 @@ coordinates addNode(bufList **head, int ch, coordinates xy)
 			new_node->prev = last_node->prev;
 			new_node->next = last_node;
 			new_node = last_node->prev;
-			updateXYNodesAdd(&new_node);
-			
-			xy.x = last_node->x;
-			xy.y = last_node->y;
-			return xy;
+			return updateXYNodesAdd(&new_node); 
 		}
 
 		last_node = last_node->next;
@@ -257,6 +256,11 @@ coordinates deleteNode(bufList **head, coordinates xy)
 
 void printNodes(bufList *head)
 {
+	if(head == NULL)
+	{
+		return;
+	}
+
 	// Print the nodes at x and y position.
 	clear();
 	while (head != NULL)
@@ -269,7 +273,7 @@ void printNodes(bufList *head)
 
 coordinates getEndNodeCoordinates(bufList *head)
 {
-	coordinates xy;
+	coordinates xy = {0, 0};
 
 	// Will find the last node and set its x and y value to be the cursor position.
 	while (head != NULL)
@@ -304,10 +308,7 @@ void editTextFile(bufList *head)
 	curs_set(1);
 	keypad(stdscr, 1);
 
-	if (head != NULL)
-	{
-		printNodes(head);
-	}
+	printNodes(head);
 
 	while ((ch = getch()) != ESC)
 	{
@@ -316,13 +317,13 @@ void editTextFile(bufList *head)
 			switch (ch)
 			{
 			case KEY_UP:
-				xy.y = xy.y != 0 ? --xy.y : xy.y;
+				xy.y += xy.y != 0 ? -1 : 0;
 				break;
 			case KEY_DOWN:
 				++xy.y;
 				break;
 			case KEY_LEFT:
-				xy.x = xy.x != 0 ? --xy.x : xy.x;
+				xy.x += xy.x != 0 ? -1 : 0;
 				break;
 			case KEY_RIGHT:
 				++xy.x;
@@ -338,20 +339,13 @@ void editTextFile(bufList *head)
 			default:
 				xy = addNode(&head, ch, xy);
 				printNodes(head);
-				/*
-				++xy.x;
-				if (ch == '\n')
-				{
-					++xy.y;
-					xy.x = 0;
-				}
-				*/
 			}
 
 			wmove(stdscr, xy.y, xy.x);
 		}
 	}
 
+	deleteAllNodes(head);
 	endwin();
 }
 
