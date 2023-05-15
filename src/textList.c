@@ -51,24 +51,25 @@ coordinates updateXYNodesAdd(bufList **head)
 {
 	bufList *next_node = (*head)->next; 
 	int lx = (*head)->x, ly = (*head)->y;
+	//int ch = (*head)->ch; 
 
 	// Update x and y of all remaining nodes meanwhile the node is not NULL.
-	for (*head = (*head)->next;
-		 (*head) != NULL;
-		 (*head) = (*head)->next)
+	for (;(*head) != NULL; (*head) = (*head)->next)
 	{
+		(*head)->x = lx;
+		(*head)->y = ly;
+
 		if ((*head)->ch == '\n')
 		{
 			++ly;
 			lx = 0;
 		}
-
-		++lx;
-		(*head)->x = lx;
-		(*head)->y = ly;
+		else
+		{
+			++lx;
+		}
 	}
-
-	coordinates xy = {next_node->x + 1, next_node->y};
+	coordinates xy = {next_node->x, next_node->y};
 	return xy; 
 }
 
@@ -161,8 +162,8 @@ coordinates addNode(bufList **head, int ch, coordinates xy)
 		{
 			last_node->prev->next = new_node;
 			new_node->prev = last_node->prev;
+			last_node->prev = new_node;
 			new_node->next = last_node;
-			new_node = last_node->prev;
 			return updateXYNodesAdd(&new_node); 
 		}
 
@@ -173,8 +174,8 @@ coordinates addNode(bufList **head, int ch, coordinates xy)
 	prev_node = last_node;
 	last_node->next = new_node;
 	new_node->prev = prev_node;
-	xy.x = new_node->x + 1;
-	xy.y = new_node->y;
+	xy.x = new_node->ch == '\n' ? 0 : new_node->x + 1;
+	xy.y += new_node->ch == '\n' ? 1 : 0;
 	return xy;
 }
 
@@ -270,7 +271,6 @@ void printNodes(bufList *head)
 	}
 	refresh();
 }
-
 coordinates getEndNodeCoordinates(bufList *head)
 {
 	coordinates xy = {0, 0};
@@ -347,43 +347,6 @@ void editTextFile(bufList *head)
 
 	deleteAllNodes(head);
 	endwin();
-}
-
-// TEST FUNCTIONS
-
-void DEBUG_PRINT_ALL_NODES_POINTER(bufList *head)
-{
-	endwin();
-	printf("\n\n");
-	for (int i = 1; head != NULL; ++i)
-	{
-		printf("Item:%d ", i);
-		if (head->next == NULL)
-			printf("next == NULL");
-		if (head->prev == NULL)
-			printf("prev == NULL\n");
-
-		head = head->next;
-	}
-
-	deleteAllNodes(head);
-	exit(1);
-}
-
-void DEBUG_PRINT_ALL_NODES_VALUE(bufList *head)
-{
-	endwin();
-	printf("\n\n");
-	for (int i = 1; head != NULL; ++i)
-	{
-		head->ch = head->ch == '\n' ? ' ' : head->ch;
-		printf("Item:%d Char:%c x:%d y:%d\n", i, head->ch, head->x, head->y);
-
-		head = head->next;
-	}
-
-	deleteAllNodes(head);
-	exit(1);
 }
 
 void DEBUG_PRINT_ALL_NODES_VALUES_AND_CURSOR_NO_EXIT(bufList *head, int x, int y)
