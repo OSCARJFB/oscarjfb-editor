@@ -32,6 +32,28 @@ bufList *createNodesFromBuffer(char *buffer, bufList *head, long fileSize)
 	return head;
 }
 
+void save(bufList *head, int size)
+{
+	char *buffer = saveListToBuffer(head, size);
+}
+
+char *saveListToBuffer(bufList *head, int size)
+{
+	char *buffer = malloc((size * sizeof(char)) + 1); 
+	if(buffer == NULL)
+	{
+		puts("saveListToBuffer: malloc failed.");
+		return NULL;  
+	}
+
+	for(int i = 0; head != NULL; head = head->next)
+	{
+		buffer[i++] = head->ch; 
+	}
+
+	return buffer; 
+}
+
 void deleteAllNodes(bufList *head)
 {
 	// Delete and free every single node.
@@ -158,13 +180,20 @@ coordinates addNode(bufList **head, int ch, coordinates xy)
 	while (last_node->next != NULL)
 	{
 		// If added at cursor position, link the new node inbetween the old nodes.
-		if (last_node->x == xy.x && last_node->y == xy.y)
+		if (last_node->x == xy.x && last_node->y == xy.y && last_node->prev != NULL)
 		{
 			last_node->prev->next = new_node;
 			new_node->prev = last_node->prev;
 			last_node->prev = new_node;
 			new_node->next = last_node;
 			return updateXYNodesAdd(&new_node); 
+		}
+		else if(last_node->x == xy.x && last_node->y == xy.y && last_node->prev == NULL)
+		{
+			last_node->prev = new_node; 
+			*head = new_node;
+			new_node->next = last_node; 
+			return updateXYNodesAdd(&new_node);
 		}
 
 		last_node = last_node->next;
@@ -182,7 +211,7 @@ coordinates addNode(bufList **head, int ch, coordinates xy)
 coordinates deleteNode(bufList **head, coordinates xy)
 {
 	// We can't free/delete a node which is NULL.
-	if (*head == NULL)
+	if (*head == NULL || (xy.x == 0 && xy.y == 0))
 	{
 		return xy;
 	}
@@ -347,21 +376,4 @@ void editTextFile(bufList *head)
 
 	deleteAllNodes(head);
 	endwin();
-}
-
-void DEBUG_PRINT_ALL_NODES_VALUES_AND_CURSOR_NO_EXIT(bufList *head, int x, int y)
-{
-	clear();
-	printw("Cursor is at: x%d y%d\n", x, y);
-	while (getch() != 'b')
-	{
-		for (int i = 1; head != NULL; ++i)
-		{
-			head->ch = head->ch == '\n' ? 'n' : head->ch;
-			printw("Item:%d Char:%c x:%d y:%d\n", i, head->ch, head->x, head->y);
-			head = head->next;
-		}
-	}
-
-	refresh();
 }

@@ -2,7 +2,7 @@
 #   https://github.com/OSCARJFB
 
 cc = gcc
-cflags = -Wall -Wextra -Werror -pedantic -std=c99
+cflags = -Wall -Wextra -Werror -pedantic -std=c99 #-fsanitize=address
 
 main: main.c
 	$(cc) main.c textList.c $(cflags) -lncurses -o main.o

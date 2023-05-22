@@ -20,6 +20,10 @@ typedef struct coordinates
 
 bufList *createNodesFromBuffer(char *buffer, bufList *head, long fileSize);
 
+void save(bufList *head, int size);
+
+char *saveListToBuffer(bufList *head, int size);
+
 void deleteAllNodes(bufList *head);
 
 coordinates updateXYNodesAdd(bufList **head);
@@ -37,11 +41,5 @@ coordinates getEndNodeCoordinates(bufList *head);
 void printNodes(bufList *head);
 
 void editTextFile(bufList *head);
-
-void printValue(); 
-
-// DEBUG functions, used to examine the linked list.
-
-void DEBUG_PRINT_ALL_NODES_VALUES_AND_CURSOR_NO_EXIT(bufList *head, int x, int y);
 
 #endif // TEXTLIST_H
