@@ -35,18 +35,21 @@ bufList *createNodesFromBuffer(char *buffer, bufList *head, long fileSize)
 void save(bufList *head, int size)
 {
 	char *buffer = saveListToBuffer(head, size);
+	free(buffer); 
 }
 
 char *saveListToBuffer(bufList *head, int size)
 {
 	char *buffer = malloc((size * sizeof(char)) + 1); 
+	buffer[size + 1] = '\0'; 
+
 	if(buffer == NULL)
 	{
 		puts("saveListToBuffer: malloc failed.");
 		return NULL;  
 	}
 
-	for(int i = 0; head != NULL; head = head->next)
+	for(int i = 0; head != NULL && buffer[i] != '\0'; head = head->next)
 	{
 		buffer[i++] = head->ch; 
 	}
@@ -73,7 +76,6 @@ coordinates updateXYNodesAdd(bufList **head)
 {
 	bufList *next_node = (*head)->next; 
 	int lx = (*head)->x, ly = (*head)->y;
-	//int ch = (*head)->ch; 
 
 	// Update x and y of all remaining nodes meanwhile the node is not NULL.
 	for (;(*head) != NULL; (*head) = (*head)->next)
@@ -324,8 +326,13 @@ coordinates getEndNodeCoordinates(bufList *head)
 	return xy;
 }
 
+// Should get a header for these?
 #define ESC 0x1b
 #define NUL 0x00
+#define S_KEY 0x73
+#define CTRL 0x1F
+#define CTRL_B ('b' & 0x1F)
+#define CTRL_S ('s' & 0x1F)
 
 void editTextFile(bufList *head)
 {
@@ -338,9 +345,12 @@ void editTextFile(bufList *head)
 	keypad(stdscr, 1);
 
 	printNodes(head);
-
-	while ((ch = getch()) != ESC)
+	
+	while ((ch = wgetch(stdscr)) != ESC)
 	{
+
+		int CTRL_CHAR = ch & CTRL; 
+
 		if (ch > NUL)
 		{
 			switch (ch)
@@ -361,14 +371,24 @@ void editTextFile(bufList *head)
 				xy = deleteNode(&head, xy);
 				printNodes(head);
 				break;
-			case 'b':
-				DEBUG_PRINT_ALL_NODES_VALUES_AND_CURSOR_NO_EXIT(head, xy.x, xy.y);
-				printNodes(head);
-				break;
 			default:
 				xy = addNode(&head, ch, xy);
 				printNodes(head);
 			}
+			
+			switch (CTRL_CHAR)
+			{
+			case CTRL_B:
+				// Other command should go here, maybe copy?
+				exit(1); 
+				break;
+			case CTRL_S:
+				save(head, 1000); // Get the real size parameter here!!!
+				break; 			
+			default: 	
+				break;
+			}
+
 
 			wmove(stdscr, xy.y, xy.x);
 		}
