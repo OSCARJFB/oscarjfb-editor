@@ -1,6 +1,9 @@
 /*
 	Writen by: Oscar Bergström
 	https://github.com/OSCARJFB
+
+	MIT License
+	Copyright (c) 2023 Oscar Bergström
 */
 
 #ifndef TEXTLIST_H
@@ -38,7 +41,7 @@ coordinates deleteNode(bufList **head, coordinates xy);
 
 coordinates getEndNodeCoordinates(bufList *head);
 
-void printNodes(bufList *head);
+int printNodes(bufList *head);
 
 void editTextFile(bufList *head);
 

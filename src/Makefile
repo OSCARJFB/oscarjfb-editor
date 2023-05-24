@@ -1,5 +1,8 @@
 #	Writen by: Oscar Bergström
 #   https://github.com/OSCARJFB
+#	
+#	MIT License
+#	Copyright (c) 2023 Oscar Bergström
 
 cc = gcc
 cflags = -Wall -Wextra -Werror -pedantic -std=c99 #-fsanitize=address
