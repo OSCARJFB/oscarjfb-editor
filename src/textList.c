@@ -1,6 +1,9 @@
 /*
 	Writen by: Oscar Bergström
 	https://github.com/OSCARJFB
+
+	MIT License
+	Copyright (c) 2023 Oscar Bergström
 */
 
 #include "textList.h"
@@ -286,21 +289,28 @@ coordinates deleteNode(bufList **head, coordinates xy)
 	return xy;
 }
 
-void printNodes(bufList *head)
+int printNodes(bufList *head)
 {
+	int size = 0; 
+
 	if(head == NULL)
 	{
-		return;
+		return size;
 	}
 
 	// Print the nodes at x and y position.
-	clear();
+	wclear(stdscr);
+
 	while (head != NULL)
 	{
 		mvwaddch(stdscr, head->y, head->x, head->ch);
 		head = head->next;
+		++size; 
 	}
-	refresh();
+
+	wrefresh(stdscr);
+
+	return size;   
 }
 coordinates getEndNodeCoordinates(bufList *head)
 {
@@ -313,7 +323,6 @@ coordinates getEndNodeCoordinates(bufList *head)
 		{
 			break;
 		}
-
 		head = head->next;
 	}
 
@@ -329,27 +338,28 @@ coordinates getEndNodeCoordinates(bufList *head)
 // Should get a header for these?
 #define ESC 0x1b
 #define NUL 0x00
-#define S_KEY 0x73
-#define CTRL 0x1F
-#define CTRL_B ('b' & 0x1F)
-#define CTRL_S ('s' & 0x1F)
+
+/*
+	Ctrl key value is 'letter' AND 0x1F.
+	for example KEY = 'a' would return binary for 1 when AND operator is done. 
+*/
+#define CTRL_KEY(KEY) (KEY & 0x1F) 
 
 void editTextFile(bufList *head)
 {
 	coordinates xy = getEndNodeCoordinates(head);
-	int ch = 0x00;
+	int ch = 0x00, size = 0;
 
 	initscr();
 	nodelay(stdscr, 1);
 	curs_set(1);
 	keypad(stdscr, 1);
+	size = printNodes(head);
 
-	printNodes(head);
-	
 	while ((ch = wgetch(stdscr)) != ESC)
 	{
 
-		int CTRL_CHAR = ch & CTRL; 
+		int CTRL_CHAR = CTRL_KEY(ch); 
 
 		if (ch > NUL)
 		{
@@ -369,21 +379,17 @@ void editTextFile(bufList *head)
 				break;
 			case KEY_BACKSPACE:
 				xy = deleteNode(&head, xy);
-				printNodes(head);
+				size = printNodes(head);
 				break;
 			default:
 				xy = addNode(&head, ch, xy);
-				printNodes(head);
+				size = printNodes(head);
 			}
 			
 			switch (CTRL_CHAR)
 			{
-			case CTRL_B:
-				// Other command should go here, maybe copy?
-				exit(1); 
-				break;
-			case CTRL_S:
-				save(head, 1000); // Get the real size parameter here!!!
+			case CTRL_KEY('s'):
+				save(head, size); 
 				break; 			
 			default: 	
 				break;
