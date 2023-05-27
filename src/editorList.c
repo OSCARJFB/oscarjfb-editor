@@ -6,11 +6,12 @@
 	Copyright (c) 2023 Oscar Bergström
 */
 
-#include "textList.h"
+#include "editorList.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
 #include <ncurses.h>
+#include "editorMode.h"
 
 bufList *createNodesFromBuffer(char *buffer, bufList *head, long fileSize)
 {
@@ -35,27 +36,40 @@ bufList *createNodesFromBuffer(char *buffer, bufList *head, long fileSize)
 	return head;
 }
 
-void save(bufList *head, int size)
+void save(bufList *head, int size, const char *fileName)
 {
 	char *buffer = saveListToBuffer(head, size);
+	if(buffer == NULL)
+	{
+		return; 
+	}
+
+	FILE *fp = fopen(fileName, "w"); 
+	if(fp == NULL)
+	{
+		return; 
+	}
+
+	fprintf(fp, "%s", buffer); 
+	fclose(fp); 
 	free(buffer); 
 }
 
 char *saveListToBuffer(bufList *head, int size)
 {
 	char *buffer = malloc((size * sizeof(char)) + 1); 
-	buffer[size + 1] = '\0'; 
-
 	if(buffer == NULL)
 	{
 		puts("saveListToBuffer: malloc failed.");
 		return NULL;  
 	}
 
-	for(int i = 0; head != NULL && buffer[i] != '\0'; head = head->next)
+	for(int i = 0; head != NULL && i < size; head = head->next)
 	{
 		buffer[i++] = head->ch; 
 	}
+
+	buffer[size] = '\0';
 
 	return buffer; 
 }
@@ -335,33 +349,27 @@ coordinates getEndNodeCoordinates(bufList *head)
 	return xy;
 }
 
-// Should get a header for these?
-#define ESC 0x1b
-#define NUL 0x00
-
-/*
-	Ctrl key value is 'letter' AND 0x1F.
-	for example KEY = 'a' would return binary for 1 when AND operator is done. 
-*/
-#define CTRL_KEY(KEY) (KEY & 0x1F) 
-
-void editTextFile(bufList *head)
+void editTextFile(bufList *head, const char *fileName)
 {
 	coordinates xy = getEndNodeCoordinates(head);
-	int ch = 0x00, size = 0;
+	int ch = NULL_KEY, size = 0;
+	int mode = EDIT; 
 
 	initscr();
-	nodelay(stdscr, 1);
-	curs_set(1);
-	keypad(stdscr, 1);
+	noecho();
+	nodelay(stdscr, true);
+	curs_set(true);
+	keypad(stdscr, true);
+
 	size = printNodes(head);
-
-	while ((ch = wgetch(stdscr)) != ESC)
+	while ((ch = wgetch(stdscr)))
 	{
+		if(ch == ESC_KEY)
+		{
+			mode = setMode(); 
+		}
 
-		int CTRL_CHAR = CTRL_KEY(ch); 
-
-		if (ch > NUL)
+		if (ch > NULL_KEY && mode == EDIT)
 		{
 			switch (ch)
 			{
@@ -384,20 +392,19 @@ void editTextFile(bufList *head)
 			default:
 				xy = addNode(&head, ch, xy);
 				size = printNodes(head);
-			}
-			
-			switch (CTRL_CHAR)
-			{
-			case CTRL_KEY('s'):
-				save(head, size); 
-				break; 			
-			default: 	
 				break;
 			}
-
-
-			wmove(stdscr, xy.y, xy.x);
 		}
+		else if(mode == SAVE)
+		{
+			save(head, size, fileName);
+		}
+		else if(mode == COPY)
+		{
+			// Copy pase goes here!
+		}
+
+		wmove(stdscr, xy.y, xy.x);
 	}
 
 	deleteAllNodes(head);

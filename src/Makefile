@@ -5,16 +5,22 @@
 #	Copyright (c) 2023 Oscar Bergström
 
 cc = gcc
-cflags = -Wall -Wextra -Werror -pedantic -std=c99 #-fsanitize=address
+cflags := -Wall -Wextra -Werror -pedantic -std=c99 -fsanitize=address
+
+cflags_release := -O3 -march=native -mtune=native -flto -fomit-frame-pointer
+
 
 main: main.c
-	$(cc) main.c textList.c $(cflags) -lncurses -o main.o
+	$(cc) main.c editorList.c editorMode.c $(cflags) -lncurses -o main.o
 
 debug: 
-	$(cc) main.c textList.c $(cflags) -g -lncurses -o main.o
+	$(cc) main.c editorList.c editorMode.c $(cflags) -g -lncurses -o main.o
 
 assembly: 
-	$(cc) main.c textList.c -lncurses -S assembly.s
+	$(cc) main.c editorList.c editorMode.c -lncurses -S assembly.s
+
+release: 
+	$(cc) main.c editorList.c editorMode.c $(cflags_release) -lncurses -o main.o
 
 clean:
 	rm -rf *.o && rm -rf *.s

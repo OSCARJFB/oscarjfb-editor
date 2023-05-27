@@ -6,8 +6,11 @@
 	Copyright (c) 2023 Oscar Bergström
 */
 
-#ifndef TEXTLIST_H
-#define TEXTLIST_H
+#ifndef EDITORLIST_H
+#define EDITORLIST_H
+
+#define ESC_KEY 0x1b
+#define NULL_KEY 0x00
 
 typedef struct bufList
 {
@@ -23,7 +26,7 @@ typedef struct coordinates
 
 bufList *createNodesFromBuffer(char *buffer, bufList *head, long fileSize);
 
-void save(bufList *head, int size);
+void save(bufList *head, int size, const char *fileName);
 
 char *saveListToBuffer(bufList *head, int size);
 
@@ -43,6 +46,6 @@ coordinates getEndNodeCoordinates(bufList *head);
 
 int printNodes(bufList *head);
 
-void editTextFile(bufList *head);
+void editTextFile(bufList *head, const char *fileName);
 
-#endif // TEXTLIST_H
+#endif // EDITORLIST_H
