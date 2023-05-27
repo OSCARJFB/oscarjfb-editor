@@ -8,7 +8,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "textList.h"
+#include "editorList.h"
 
 FILE *getFileFromArg(int argc, char **argv)
 {
@@ -98,7 +98,7 @@ void loadBuffer(char *buffer, FILE *FP, long fileSize)
 
 int main(int argc, char **argv)
 {
-	system("clear");
+	system("clear"); // replace with ncurses here. 
 	long fileSize = 0;
 	char *buffer = NULL;
 	bufList *head = NULL;
@@ -129,9 +129,9 @@ int main(int argc, char **argv)
 		exit(-1);
 	}
 
-	editTextFile(head);
-	freeBuffer(buffer);
 	closeFile(FP);
+	editTextFile(head, argv[1]);
+	freeBuffer(buffer);
 
 	return 0;
 }
