@@ -13,7 +13,8 @@ enum mode
 {
 	EDIT = 0,
 	SAVE = 1,
-	COPY = 2
+	COPY = 2,
+	PASTE = 3
 };
 
 int setMode(void);
