@@ -24,6 +24,8 @@ int setMode(void)
 			return SAVE;
 		case 'c': 
 			return COPY;
+		case 'v': 
+			return PASTE;
 		}
 	}
 
