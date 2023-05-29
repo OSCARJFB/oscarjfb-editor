@@ -73,19 +73,56 @@ char *saveListToBuffer(bufList *head, int size)
 
 	return buffer;
 }
-bufList *saveCopiedText(bufList **head, coordinates cp_start, coordinates cp_end)
+bufList *saveCopiedText(bufList *head, coordinates cp_start, coordinates cp_end)
 {
-	//TBD
+	bufList *copiedList = NULL; 
+	bool start_found = false; 
+	while(head != NULL)
+	{
+		// Start of copy found, add every node until ending is found. 
+		if((head->x == cp_start.x && head->y == cp_start.y) || start_found)
+		{
+			coordinates xy = {head->x, head->y}; 
+			bufList *new_node = createNewNode(xy, head->ch); 
+			if(copiedList == NULL)
+			{
+				copiedList = new_node; 
+				start_found = true; 
+			}
+			else
+			{
+				while(copiedList->next != NULL)
+				{
+					copiedList = copiedList->next;
+				}
+				new_node->prev = copiedList; 
+				copiedList->next = new_node; 
+			}
+
+			break;
+		}
+
+		// If true end of list is found.  
+		if(head->x == cp_end.x && head->y == cp_end.y)
+		{
+			break;
+		}
+
+		head = head->next; 
+	}
+
+	return copiedList; 
 }
 
-void pasteCopiedList(bufList **head, bufList **copiedList, coordinates xy)
+void pasteCopiedList(bufList *copiedList, coordinates xy)
 { 
-	//TBD
-}
-
-void deleteCopiedList(bufList *head)
-{
-	//TBD
+	clear();
+	endwin(); 
+	while(copiedList != NULL)
+	{
+		printf(":%c", copiedList->ch);
+		copiedList = copiedList->next; 
+	}
 }
 
 void deleteAllNodes(bufList *head)
@@ -413,9 +450,8 @@ void editTextFile(bufList *head, const char *fileName)
 		else if (mode == SAVE)
 		{
 			save(head, size, fileName);
-			mode = EDIT; 
 		}
-		else if (mode == COPY && ch == COPY)
+		else if (mode == COPY)
 		{
 			// Get start point of text copy action.
 			if(!copy)
@@ -423,7 +459,7 @@ void editTextFile(bufList *head, const char *fileName)
 				// If copy action is reused and list is not empty clear old data!
 				if(copiedList != NULL)
 				{
-					deleteCopiedList(copiedList); 
+					deleteAllNodes(copiedList); 
 					copiedList = NULL; 
 				}
 				cp_start.x = xy.x;
@@ -432,19 +468,21 @@ void editTextFile(bufList *head, const char *fileName)
 			} // Get end point of text copy action.
 			else 
 			{
-				cp_start.x = xy.x;
-				cp_start.y = xy.y;
-				copiedList = saveCopiedText(&head, cp_start, cp_end); 
+				cp_end.x = xy.x;
+				cp_end.y = xy.y;
+				copiedList = saveCopiedText(head, cp_start, cp_end); 
 				copy = false; 
 			}
-
 		}
-		else if (mode == PASTE && ch == PASTE && copiedList != NULL)
+		else if (mode == PASTE)
 		{
-			pasteCopiedList(&head, &copiedList, xy);
-			deleteCopiedList(copiedList);
+			// TEST!
+			pasteCopiedList(copiedList, xy);
+			deleteAllNodes(copiedList);
+			return;	  // TESTING
 		}
 
+		mode = EDIT; 
 		wmove(stdscr, xy.y, xy.x);
 	}
 
