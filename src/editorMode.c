@@ -31,3 +31,17 @@ int setMode(void)
 
 	return EDIT;
 }
+
+void initCurseMode(void)
+{
+	initscr();
+	noecho();
+	nodelay(stdscr, true);
+	curs_set(true);
+	keypad(stdscr, true);
+}
+
+void checkEditorMode(bufList *head, const char *fileName)
+{
+	initCurseMode(); 
+}
