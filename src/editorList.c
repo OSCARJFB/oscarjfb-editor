@@ -80,31 +80,36 @@ bufList *saveCopiedText(bufList *head, coordinates cp_start, coordinates cp_end)
 	while(head != NULL)
 	{
 		// Start of copy found, add every node until ending is found. 
-		if((head->x == cp_start.x && head->y == cp_start.y) || start_found)
+		if(((head->x == cp_start.x && head->y == cp_start.y) || start_found))
 		{
 			coordinates xy = {head->x, head->y}; 
-			bufList *new_node = createNewNode(xy, head->ch); 
+			bufList *next_node = createNewNode(xy, head->ch); 
+			if(next_node == NULL)
+			{
+				return NULL; 
+			}
+
 			if(copiedList == NULL)
 			{
-				copiedList = new_node; 
+				copiedList = next_node; 
 				start_found = true; 
 			}
 			else
 			{
-				while(copiedList->next != NULL)
+				bufList *last_node = copiedList, *prev_node = copiedList; 
+				while(last_node->next != NULL)
 				{
-					copiedList = copiedList->next;
+					last_node = last_node->next;
 				}
-				new_node->prev = copiedList; 
-				copiedList->next = new_node; 
-			}
 
-			break;
+				last_node->next = next_node; 
+				last_node->prev = prev_node; 
+			}
 		}
 
 		// If true end of list is found.  
 		if(head->x == cp_end.x && head->y == cp_end.y)
-		{
+		{	
 			break;
 		}
 
@@ -218,19 +223,19 @@ void updateXYNodesDel(bufList **head)
 
 bufList *createNewNode(coordinates xy, int ch)
 {
-	bufList *new_node = malloc(sizeof(bufList));
-	if (new_node == NULL)
+	bufList *next_node = malloc(sizeof(bufList));
+	if (next_node == NULL)
 	{
 		return NULL;
 	}
 
-	new_node->x = xy.x;
-	new_node->y = xy.y;
-	new_node->ch = ch;
-	new_node->next = NULL;
-	new_node->prev = NULL;
+	next_node->x = xy.x;
+	next_node->y = xy.y;
+	next_node->ch = ch;
+	next_node->next = NULL;
+	next_node->prev = NULL;
 
-	return new_node;
+	return next_node;
 }
 
 coordinates addNode(bufList **head, int ch, coordinates xy)
@@ -243,7 +248,7 @@ coordinates addNode(bufList **head, int ch, coordinates xy)
 	}
 
 	// Create a new node and add base values, depending on parameter input.
-	bufList *new_node = createNewNode(xy, ch);
+	bufList *next_node = createNewNode(xy, ch);
 	bufList *last_node = *head, *prev_node = NULL;
 
 	// Find the last node in the list.
@@ -252,18 +257,18 @@ coordinates addNode(bufList **head, int ch, coordinates xy)
 		// If added at cursor position, link the new node inbetween the old nodes.
 		if (last_node->x == xy.x && last_node->y == xy.y && last_node->prev != NULL)
 		{
-			last_node->prev->next = new_node;
-			new_node->prev = last_node->prev;
-			last_node->prev = new_node;
-			new_node->next = last_node;
-			return updateXYNodesAdd(&new_node);
+			last_node->prev->next = next_node;
+			next_node->prev = last_node->prev;
+			last_node->prev = next_node;
+			next_node->next = last_node;
+			return updateXYNodesAdd(&next_node);
 		}
 		else if (last_node->x == xy.x && last_node->y == xy.y && last_node->prev == NULL)
 		{
-			last_node->prev = new_node;
-			*head = new_node;
-			new_node->next = last_node;
-			return updateXYNodesAdd(&new_node);
+			last_node->prev = next_node;
+			*head = next_node;
+			next_node->next = last_node;
+			return updateXYNodesAdd(&next_node);
 		}
 
 		last_node = last_node->next;
@@ -271,10 +276,10 @@ coordinates addNode(bufList **head, int ch, coordinates xy)
 
 	// Add the new node to the end of the list.
 	prev_node = last_node;
-	last_node->next = new_node;
-	new_node->prev = prev_node;
-	xy.x = new_node->ch == '\n' ? 0 : new_node->x + 1;
-	xy.y += new_node->ch == '\n' ? 1 : 0;
+	last_node->next = next_node;
+	next_node->prev = prev_node;
+	xy.x = next_node->ch == '\n' ? 0 : next_node->x + 1;
+	xy.y += next_node->ch == '\n' ? 1 : 0;
 	return xy;
 }
 
@@ -474,7 +479,7 @@ void editTextFile(bufList *head, const char *fileName)
 				copy = false; 
 			}
 		}
-		else if (mode == PASTE)
+		else if (mode == PASTE && copiedList != NULL)
 		{
 			// TEST!
 			pasteCopiedList(copiedList, xy);
