@@ -47,6 +47,8 @@ void save(bufList *head, int size, const char *fileName)
 	FILE *fp = fopen(fileName, "w");
 	if (fp == NULL)
 	{
+		free(buffer);
+		buffer = NULL; 
 		return;
 	}
 
@@ -119,46 +121,60 @@ bufList *saveCopiedText(bufList *head, coordinates cp_start, coordinates cp_end)
 	return copiedList; 
 }
 
-void pasteCopiedList(bufList **head, bufList *copiedList, coordinates xy)
+void pasteCopiedList(bufList **head, bufList **copiedList, coordinates xy)
 {
-	bufList *next_node = NULL;
+	if(*head == NULL || *copiedList == NULL)
+	{
+		return; 
+	}
 
-	// Loop the list until paste coordinates are found. 
-	while(*head != NULL)
-	{		
-		// Check for paste target. 
-		if((*head)->x == xy.x && (*head)->y == xy.y)
+	bufList *prev_node = *head;
+	while(prev_node->next != NULL)
+	{
+		if(prev_node->x == xy.x && prev_node->y == xy.y)
 		{
-			int y = (*head)->y, x = (*head)->x; 
-
-			// Chain start.
-			next_node = (*head)->next; 
-			copiedList->prev = *head;
-
-			// Loop the copied list and set its coordinates. 
-			while(copiedList->next != NULL)
-			{
-				if(copiedList->y > y)
-				{
-					++y; 
-				}
-				
-				if(copiedList->y == (*head)->y)
-				{
-					copiedList->x = ++x; 
-				}
-
-				copiedList->y = y; 
-				copiedList = copiedList->next; 
-			}
-
-			// Chain end.
-			copiedList->next = next_node;
-			next_node->prev = copiedList;  
+			break;
 		}
 
-		*head = (*head)->next;
+		prev_node = prev_node->next;
 	}
+
+	bufList *current_node = *copiedList, *next_node = prev_node->next; 
+	prev_node->next = current_node;
+	current_node->prev = prev_node;
+
+
+	int y = xy.y == prev_node->y ? prev_node->y : prev_node->y + 1;
+	int x = y != prev_node->y ? current_node->x : prev_node->x + 1;
+
+	while(current_node->next != NULL)
+	{
+		current_node->x = x;
+		current_node->y = y; 
+		current_node = current_node->next;
+		++x;
+		if(current_node->y != y)
+		{
+			x = 0; 
+			++y; 
+		}
+	}
+
+	if(next_node != NULL)
+	{
+		current_node->next = next_node;
+		next_node->prev = current_node;
+	}
+	/*
+	endwin();
+	bufList *temp = *head;
+	while(temp != NULL)
+	{
+		printf(":%c, x:%d, y:%d \n", temp->ch, temp->x, temp->y);
+		temp = temp->next;
+	}
+	exit(1);
+	*/ 
 }
 
 void deleteAllNodes(bufList *head)
@@ -512,7 +528,7 @@ void editTextFile(bufList *head, const char *fileName)
 		}
 		else if (mode == PASTE && copiedList != NULL)
 		{
-			pasteCopiedList(&head, copiedList, xy);
+			pasteCopiedList(&head, &copiedList, xy);
 			size = printNodes(head);
 			deleteAllNodes(copiedList);
 		}
