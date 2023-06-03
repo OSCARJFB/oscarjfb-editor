@@ -129,31 +129,31 @@ void pasteCopiedList(bufList **head, bufList *copiedList, coordinates xy)
 	}
 
 	// First the "paste" location should be found.
-	bufList *prefix = *head;
-	while(prefix->next != NULL)
+	bufList *preList = *head;
+	while(preList->next != NULL)
 	{
-		if(prefix->x == xy.x && prefix->y == xy.y)
+		if(preList->x == xy.x && preList->y == xy.y)
 		{
 			break;
 		}
 
-		prefix = prefix->next;
+		preList = preList->next;
 	}
 
 	// The new line character needs to be moved after the printed list. 
-	if(prefix->ch == '\n' && prefix->prev != NULL)
+	if(preList->ch == '\n' && preList->prev != NULL)
 	{ 
-		prefix = prefix->prev; 
-		xy.x = prefix->x; 
-		xy.y = prefix->y; 
+		preList = preList->prev; 
+		xy.x = preList->x; 
+		xy.y = preList->y; 
 	}
 
 	// This will be connected to the end of the copied list. 
-	bufList *suffix = prefix->next; 
+	bufList *postList = preList->next; 
 
 	// Connect the start of the copied list. 
-	prefix->next = copiedList;
-	copiedList->prev = prefix;
+	preList->next = copiedList;
+	copiedList->prev = preList;
 
 	// Set the coordinates of the copied list. 
 	int y = xy.y, x = xy.x + 1;
@@ -170,7 +170,7 @@ void pasteCopiedList(bufList **head, bufList *copiedList, coordinates xy)
 		copiedList = copiedList->next;
 		
 		++x;
-		if(copiedList->y != y)
+		if(copiedList->ch == '\n')
 		{
 			x = 0; 
 			++y; 
@@ -178,32 +178,43 @@ void pasteCopiedList(bufList **head, bufList *copiedList, coordinates xy)
 	}
 
 	// If the list continue after the end of the copied list, connect and update the remaining list coordinates. 
-	if(suffix != NULL)
+	if(postList != NULL)
 	{
-		y = suffix->y == copiedList->y ? suffix->y : suffix->y + 1; 
-		copiedList->next = suffix;
-		suffix->prev = copiedList;
+		y = postList->y == copiedList->y ? postList->y : postList->y + 1; 
+		++x; 
+		copiedList->next = postList;
+		postList->prev = copiedList;
 
-		while(suffix != NULL)
+		while(postList != NULL)
 		{
-			suffix->x = x;
-			suffix->y = y; 
-
-			if(suffix->next == NULL)
+			postList->x = x;
+			postList->y = y; 
+			
+			if(postList->next == NULL)
 			{
 				break;
 			}
 			
-			suffix = suffix->next;
+			postList = postList->next;
 
 			++x;
-			if(suffix->y != y)
+			if(postList->y != y)
 			{
 				x = 0; 
 				++y; 
 			}
 		}	
 	}
+	/*
+	endwin();
+	bufList *temp = *head;
+	while(temp != NULL)
+	{
+		printf(":%c, x:%d, y:%d \n", temp->ch, temp->x, temp->y);
+		temp = temp->next;
+	}
+	exit(1);
+	*/
 }
 
 void deleteAllNodes(bufList *head)

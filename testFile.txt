@@ -1,1 +1,4 @@
-oscar heter jag hej.
+int main()
+{
+    return 0;
+}
