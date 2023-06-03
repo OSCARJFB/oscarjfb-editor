@@ -32,7 +32,7 @@ char *saveListToBuffer(bufList *head, int size);
 
 bufList *saveCopiedText(bufList *head, coordinates cp_start, coordinates cp_end);
 
-void pasteCopiedText(bufList **head, bufList **copiedList, coordinates xy);
+void pasteCopiedText(bufList **head, bufList *copiedList, coordinates xy);
 
 void deleteAllNodes(bufList *head);
 
