@@ -6,11 +6,13 @@
 	Copyright (c) 2023 Oscar Bergström
 */
 
+#include <stdbool.h>	
+
 #ifndef EDITORLIST_H
 #define EDITORLIST_H
 
-#define ESC_KEY 0x1b
-#define NULL_KEY 0x00
+#define ESC_KEY 27
+#define NO_KEY -1
 
 typedef struct bufList
 {
@@ -24,6 +26,15 @@ typedef struct coordinates
 	int x, y;
 } coordinates;
 
+
+typedef struct dataCopied
+{
+	bufList *copiedList;
+	coordinates cpy_start, cpy_end;
+	bool copy_status;
+} dataCopied;
+
+
 bufList *createNodesFromBuffer(char *buffer, bufList *head, long fileSize);
 
 void save(bufList *head, int size, const char *fileName);
@@ -36,19 +47,25 @@ void pasteCopiedText(bufList **head, bufList *copiedList, coordinates xy);
 
 void deleteAllNodes(bufList *head);
 
-coordinates updateXYNodesAdd(bufList **head);
+bufList *createNewNode(int ch);
 
-void updateXYNodesDel(bufList **head);
+void addNode(bufList **head, int ch, coordinates xy);
 
-bufList *createNewNode(coordinates xy, int ch);
-
-coordinates addNode(bufList **head, int ch, coordinates xy);
-
-coordinates deleteNode(bufList **head, coordinates xy);
+void deleteNode(bufList **head, coordinates xy);
 
 coordinates getEndNodeCoordinates(bufList *head);
 
 int printNodes(bufList *head);
+
+void updateCoordinates(bufList **head); 
+
+void initCurseMode(void);
+
+void endCurseMode(void);
+
+dataCopied getCopyStart(dataCopied cp_data, coordinates xy);
+
+dataCopied getCopyEnd(dataCopied cp_data, coordinates xy);
 
 void editTextFile(bufList *head, const char *fileName);
 

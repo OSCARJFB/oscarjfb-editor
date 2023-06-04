@@ -11,9 +11,6 @@
 
 #include "editorList.h"
 
-#define ESC_KEY 0x1b
-#define NULL_KEY 0x00
-
 enum mode
 {
 	EDIT = 0,
@@ -24,7 +21,7 @@ enum mode
 
 int setMode(void);
 
-void initCurseMode(void);
+//void initCurseMode(void);
 
 void checkEditorMode(bufList *head, const char *fileName); 
 
