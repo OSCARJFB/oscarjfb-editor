@@ -21,8 +21,4 @@ enum mode
 
 int setMode(void);
 
-//void initCurseMode(void);
-
-void checkEditorMode(bufList *head, const char *fileName); 
-
 #endif // EDITORMODE_H

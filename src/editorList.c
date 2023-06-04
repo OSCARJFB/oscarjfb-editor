@@ -32,6 +32,7 @@ bufList *createNodesFromBuffer(char *buffer, bufList *head, long fileSize)
 		++xy.x;
 	}
 
+	updateCoordinates(&head);
 	return head;
 }
 
@@ -76,7 +77,7 @@ char *saveListToBuffer(bufList *head, int size)
 }
 bufList *saveCopiedText(bufList *head, coordinates cpy_start, coordinates cp_end)
 {
-	bufList *copiedList = NULL;
+	bufList *cpy_List = NULL;
 	bool start_found = false;
 	while (head != NULL)
 	{
@@ -89,14 +90,14 @@ bufList *saveCopiedText(bufList *head, coordinates cpy_start, coordinates cp_end
 				return NULL;
 			}
 
-			if (copiedList == NULL)
+			if (cpy_List == NULL)
 			{
-				copiedList = next_node;
+				cpy_List = next_node;
 				start_found = true;
 			}
 			else
 			{
-				bufList *last_node = copiedList, *prev_node = copiedList;
+				bufList *last_node = cpy_List, *prev_node = cpy_List;
 				while (last_node->next != NULL)
 				{
 					last_node = last_node->next;
@@ -116,12 +117,12 @@ bufList *saveCopiedText(bufList *head, coordinates cpy_start, coordinates cp_end
 		head = head->next;
 	}
 
-	return copiedList;
+	return cpy_List;
 }
 
-void pasteCopiedList(bufList **head, bufList *copiedList, coordinates xy)
+void pastecpy_List(bufList **head, bufList *cpy_List, coordinates xy)
 {
-	if (*head == NULL || copiedList == NULL)
+	if (*head == NULL || cpy_List == NULL)
 	{
 		return;
 	}
@@ -148,15 +149,15 @@ void pasteCopiedList(bufList **head, bufList *copiedList, coordinates xy)
 	bufList *postList = preList->next;
 
 	// Connect the start of the copied list.
-	preList->next = copiedList;
-	copiedList->prev = preList;
+	preList->next = cpy_List;
+	cpy_List->prev = preList;
 
 	// connect the remaining list if it exists.
 	if (postList != NULL)
 	{
 
-		copiedList->next = postList;
-		postList->prev = copiedList;
+		cpy_List->next = postList;
+		postList->prev = cpy_List;
 	}
 }
 
@@ -371,32 +372,33 @@ void updateCoordinates(bufList **head)
 	}
 }
 
-inline void initCurseMode(void)
-{
-	initscr();
-	noecho();
-	nodelay(stdscr, true);
-	curs_set(true);
-	keypad(stdscr, true);
-}
-
-inline void endCurseMode(void)
-{
-	endwin();
-}
-
 dataCopied getCopyStart(dataCopied cpy_data, coordinates xy)
 {
+	if(cpy_data.isStart)
+	{
+		return cpy_data;
+	}
+
 	cpy_data.cpy_start.x = xy.x;
 	cpy_data.cpy_start.y = xy.y;
+	cpy_data.isStart = true; 
 
 	return cpy_data;
 }
 
 dataCopied getCopyEnd(dataCopied cpy_data, coordinates xy)
 {
-	cpy_data.cpy_end.x = xy.x;
-	cpy_data.cpy_end.y = xy.y;
+	if(cpy_data.isStart && cpy_data.isEnd)
+	{
+		cpy_data.cpy_end.x = xy.x;
+		cpy_data.cpy_end.y = xy.y;
+		cpy_data.isStart = cpy_data.isEnd = false;
+	}
+
+	if(cpy_data.isStart)
+	{
+		cpy_data.isEnd = true;
+	}
 
 	return cpy_data;
 }
@@ -405,12 +407,15 @@ dataCopied getCopyEnd(dataCopied cpy_data, coordinates xy)
 void editTextFile(bufList *head, const char *fileName)
 {
 	coordinates xy = getEndNodeCoordinates(head);
-	dataCopied cpy_data = {NULL, {0, 0}, {0, 0}, false};
-	bufList *copiedList = NULL;
+	dataCopied cpy_data = {NULL, {0, 0}, {0, 0}, false, false};
 	int ch = NO_KEY, size = 0, mode = EDIT;
-	bool isCopied = false, isEdited = false;
 
-	initCurseMode();
+	initscr();
+	noecho();
+	nodelay(stdscr, true);
+	curs_set(1);
+	keypad(stdscr, true);
+
 	updateCoordinates(&head);
 	size = printNodes(head);
 	while ((ch = wgetch(stdscr)))
@@ -443,13 +448,9 @@ void editTextFile(bufList *head, const char *fileName)
 				break;
 			case KEY_BACKSPACE:
 				deleteNode(&head, xy);
-				updateCoordinates(&head);
-				size = printNodes(head);
 				break;
 			default:
 				addNode(&head, ch, xy);
-				updateCoordinates(&head);
-				size = printNodes(head);
 				break;
 			}
 		}
@@ -460,13 +461,29 @@ void editTextFile(bufList *head, const char *fileName)
 		else if(mode == COPY)
 		{
 			cpy_data = getCopyStart(cpy_data, xy); 
-			cpy_data = getCopyEnd(cpy_data, xy); 
-			cpy_data.copiedList = saveCopiedText(head, cpy_data.cpy_start, cpy_data.cpy_end); 
+			cpy_data = getCopyEnd(cpy_data, xy);
+
+			if(!cpy_data.isStart && !cpy_data.isEnd)
+			{
+				cpy_data.cpy_List = saveCopiedText(head, cpy_data.cpy_start, cpy_data.cpy_end); 
+			}
+		}
+		else if(mode == PASTE)
+		{
+			pasteCopiedText(&head, cpy_data.cpy_List, xy); 
+			mode = EDIT;
 		}
 
-		wmove(stdscr, xy.y, xy.x);
+		if(mode == EDIT)
+		{
+			updateCoordinates(&head);
+			size = printNodes(head);
+			wmove(stdscr, xy.y, xy.x);
+			wrefresh(stdscr);
+		}
+		mode = EDIT; 
 	}
 
 	deleteAllNodes(head);
-	endCurseMode();
+	endwin();
 }

@@ -29,9 +29,9 @@ typedef struct coordinates
 
 typedef struct dataCopied
 {
-	bufList *copiedList;
+	bufList *cpy_List;
 	coordinates cpy_start, cpy_end;
-	bool copy_status;
+	bool isStart, isEnd;
 } dataCopied;
 
 
@@ -43,7 +43,7 @@ char *saveListToBuffer(bufList *head, int size);
 
 bufList *saveCopiedText(bufList *head, coordinates cp_start, coordinates cp_end);
 
-void pasteCopiedText(bufList **head, bufList *copiedList, coordinates xy);
+void pasteCopiedText(bufList **head, bufList *cpy_List, coordinates xy);
 
 void deleteAllNodes(bufList *head);
 
@@ -58,10 +58,6 @@ coordinates getEndNodeCoordinates(bufList *head);
 int printNodes(bufList *head);
 
 void updateCoordinates(bufList **head); 
-
-void initCurseMode(void);
-
-void endCurseMode(void);
 
 dataCopied getCopyStart(dataCopied cp_data, coordinates xy);
 
