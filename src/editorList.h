@@ -34,18 +34,7 @@ typedef struct dataCopied
 	bool isStart, isEnd;
 } dataCopied;
 
-
 bufList *createNodesFromBuffer(char *buffer, bufList *head, long fileSize);
-
-void save(bufList *head, int size, const char *fileName);
-
-char *saveListToBuffer(bufList *head, int size);
-
-bufList *saveCopiedText(bufList *head, coordinates cp_start, coordinates cp_end);
-
-void pasteCopiedlist(bufList **head, bufList *cpy_List, coordinates xy);
-
-void deleteAllNodes(bufList *head);
 
 bufList *createNewNode(int ch);
 
@@ -55,14 +44,24 @@ coordinates deleteNode(bufList **head, coordinates xy);
 
 coordinates getEndNodeCoordinates(bufList *head);
 
-int printNodes(bufList *head);
-
-void updateCoordinates(bufList **head); 
-
 dataCopied getCopyStart(dataCopied cp_data, coordinates xy);
 
 dataCopied getCopyEnd(dataCopied cp_data, coordinates xy);
 
+bufList *saveCopiedText(bufList *head, coordinates cp_start, coordinates cp_end);
+
+void pasteCopiedlist(bufList **head, bufList *cpy_List, coordinates xy);
+
 void editTextFile(bufList *head, const char *fileName);
+
+void save(bufList *head, int size, const char *fileName);
+
+char *saveListToBuffer(bufList *head, int size);
+
+void deleteAllNodes(bufList *head);
+
+void updateCoordinates(bufList **head); 
+
+int printNodes(bufList *head);
 
 #endif // EDITORLIST_H
