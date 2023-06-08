@@ -158,7 +158,7 @@ coordinates addNode(bufList **head, int ch, coordinates xy)
 	{
 		*head = createNewNode(ch);
 		xy.x = 0;
-		xy.y += ch == '\n' ? 1 : 0; 
+		xy.y += ch == '\n' ? 1 : 0;
 		return xy;
 	}
 
@@ -176,9 +176,9 @@ coordinates addNode(bufList **head, int ch, coordinates xy)
 			next_node->prev = last_node->prev;
 			last_node->prev = next_node;
 			next_node->next = last_node;
-			
-			xy.x = ch == '\n' ? 0 : last_node->x + 1;
-			xy.y += ch == '\n' ? 1 : 0; 
+
+			xy.x = ch == '\n' ? 0 : last_node->x + 2;
+			xy.y += ch == '\n' ? 1 : 0;
 			return xy;
 		}
 		else if (last_node->x == xy.x && last_node->y == xy.y && last_node->prev == NULL)
@@ -186,9 +186,9 @@ coordinates addNode(bufList **head, int ch, coordinates xy)
 			last_node->prev = next_node;
 			*head = next_node;
 			next_node->next = last_node;
-			
-			xy.x = ch == '\n' ? 0 : last_node->x + 1;
-			xy.y += ch == '\n' ? 1 : 0; 
+
+			xy.x = ch == '\n' ? 0 : last_node->x + 2;
+			xy.y += ch == '\n' ? 1 : 0;
 			return xy;
 		}
 
@@ -200,8 +200,8 @@ coordinates addNode(bufList **head, int ch, coordinates xy)
 	last_node->next = next_node;
 	next_node->prev = prev_node;
 
-	xy.x = ch == '\n' ? 0 : last_node->x + 1;
-	xy.y += ch == '\n' ? 1 : 0; 
+	xy.x = ch == '\n' ? 0 : last_node->x + 2;
+	xy.y += ch == '\n' ? 1 : 0;
 	return xy;
 }
 
@@ -240,7 +240,7 @@ coordinates deleteNode(bufList **head, coordinates xy)
 	// If both prev and next are NULL this is the only node in the list.
 	if (del_node->prev == NULL && del_node->next == NULL)
 	{
-		xy.x = xy.y = 0; 
+		xy.x = xy.y = 0;
 		free(*head);
 		*head = NULL;
 		return xy;
@@ -349,28 +349,28 @@ void updateCoordinates(bufList **head)
 
 dataCopied getCopyStart(dataCopied cpy_data, coordinates xy)
 {
-	if(cpy_data.isStart)
+	if (cpy_data.isStart)
 	{
 		return cpy_data;
 	}
 
 	cpy_data.cpy_start.x = xy.x;
 	cpy_data.cpy_start.y = xy.y;
-	cpy_data.isStart = true; 
+	cpy_data.isStart = true;
 
 	return cpy_data;
 }
 
 dataCopied getCopyEnd(dataCopied cpy_data, coordinates xy)
 {
-	if(cpy_data.isStart && cpy_data.isEnd)
+	if (cpy_data.isStart && cpy_data.isEnd)
 	{
 		cpy_data.cpy_end.x = xy.x;
 		cpy_data.cpy_end.y = xy.y;
 		cpy_data.isStart = cpy_data.isEnd = false;
 	}
 
-	if(cpy_data.isStart)
+	if (cpy_data.isStart)
 	{
 		cpy_data.isEnd = true;
 	}
@@ -427,36 +427,36 @@ void pasteCopiedlist(bufList **head, bufList *cpy_list, coordinates xy)
 {
 	if (*head == NULL || cpy_list == NULL)
 	{
-		return; 
+		return;
 	}
 
 	// First the "paste" location should be found.
 	bufList *preList = *head;
-	while (preList->next != NULL)
+	for (; preList->next != NULL; preList = preList->next)
 	{
 		if (preList->x == xy.x && preList->y == xy.y)
 		{
 			break;
 		}
-
-		preList = preList->next;
 	}
 
-	// The new line character needs to be moved after the printed list. 
-	if(preList->ch == '\n')
-	{ 
-		preList = preList->prev; 
-	}
-
-	// This will be connected to the end of the copied list. 
-	bufList *postList = preList->next; 
-
-	// Connect the start of the copied list.
-	preList->next = cpy_list;
-	cpy_list->prev = preList;
-
-	if(postList != NULL)
+	// The new line character needs to be moved after the printed list.
+	if (preList->ch == '\n')
 	{
+		preList = preList->prev;
+	}
+
+	// Connect the prelist to the copied list.
+	bufList *postList = preList->next;
+	preList->next = cpy_list;
+	cpy_list->prev = cpy_list;
+
+	// Connect the post list to the copied list if any. 
+	if (cpy_list != NULL && postList != NULL)
+	{
+		for (; cpy_list->next != NULL; cpy_list = cpy_list->next)
+			;
+
 		cpy_list->next = postList;
 		postList->prev = cpy_list;
 	}
@@ -512,34 +512,34 @@ void editTextFile(bufList *head, const char *fileName)
 				break;
 			}
 		}
-		else if(mode == SAVE)
+		else if (mode == SAVE)
 		{
 			save(head, size, fileName);
 		}
-		else if(mode == COPY)
+		else if (mode == COPY)
 		{
-			if(cpy_data.cpy_List != NULL)
+			if (cpy_data.cpy_List != NULL)
 			{
 				deleteAllNodes(cpy_data.cpy_List);
 				cpy_data.cpy_List = NULL;
 			}
 
-			cpy_data = getCopyStart(cpy_data, xy); 
+			cpy_data = getCopyStart(cpy_data, xy);
 			cpy_data = getCopyEnd(cpy_data, xy);
 
-			if(!cpy_data.isStart && !cpy_data.isEnd)
+			if (!cpy_data.isStart && !cpy_data.isEnd)
 			{
-				cpy_data.cpy_List = saveCopiedText(head, cpy_data.cpy_start, cpy_data.cpy_end); 
+				cpy_data.cpy_List = saveCopiedText(head, cpy_data.cpy_start, cpy_data.cpy_end);
 			}
 		}
-		else if(mode == PASTE)
+		else if (mode == PASTE)
 		{
-			pasteCopiedlist(&head, cpy_data.cpy_List, xy); 
-			cpy_data.cpy_List = NULL; 
+			pasteCopiedlist(&head, cpy_data.cpy_List, xy);
+			cpy_data.cpy_List = NULL;
 			mode = EDIT;
 		}
 
-		if(mode == EDIT)
+		if (mode == EDIT)
 		{
 			updateCoordinates(&head);
 			size = printNodes(head);

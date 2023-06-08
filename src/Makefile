@@ -5,7 +5,7 @@
 #	Copyright (c) 2023 Oscar Bergström
 
 cc = gcc
-cflags := -Wall -Wextra -Werror -pedantic -std=c99 -fsanitize=address
+cflags := -Wall -Wextra -Werror -pedantic -std=c99
 
 cflags_release := -O3 -march=native -mtune=native -flto -fomit-frame-pointer
 
