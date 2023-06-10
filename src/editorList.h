@@ -6,7 +6,7 @@
 	Copyright (c) 2023 Oscar Bergström
 */
 
-#include <stdbool.h>	
+#include <stdbool.h>
 
 #ifndef EDITORLIST_H
 #define EDITORLIST_H
@@ -26,13 +26,31 @@ typedef struct coordinates
 	int x, y;
 } coordinates;
 
-
 typedef struct dataCopied
 {
 	bufList *cpy_List;
 	coordinates cpy_start, cpy_end;
 	bool isStart, isEnd;
 } dataCopied;
+
+extern int leftMargin;
+extern int rightMargin;
+
+enum lineLimit
+{
+	one_hundred = 100,
+	one_thousand = 1000,
+	ten_thousand = 10000,
+	hundred_thousand = 100000,
+};
+
+enum marginSize
+{
+	three = 3,
+	four = 4,
+	five = 5,
+	six = 6,
+};
 
 bufList *createNodesFromBuffer(char *buffer, bufList *head, long fileSize);
 
@@ -60,7 +78,9 @@ char *saveListToBuffer(bufList *head, int size);
 
 void deleteAllNodes(bufList *head);
 
-void updateCoordinates(bufList **head); 
+void updateCoordinates(bufList **head);
+
+void setLeftMargin(bufList *head);
 
 int printNodes(bufList *head);
 

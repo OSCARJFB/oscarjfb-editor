@@ -13,6 +13,9 @@
 #include <ncurses.h>
 #include "editorMode.h"
 
+int leftMargin = 0;
+int rightMargin = 0;
+
 bufList *createNodesFromBuffer(char *buffer, bufList *head, long fileSize)
 {
 	coordinates xy = {0, 0};
@@ -76,47 +79,6 @@ char *saveListToBuffer(bufList *head, int size)
 	return buffer;
 }
 
-void pastecpy_List(bufList **head, bufList *cpy_List, coordinates xy)
-{
-	if (*head == NULL || cpy_List == NULL)
-	{
-		return;
-	}
-
-	// First the "paste" location should be found.
-	bufList *preList = *head;
-	while (preList->next != NULL)
-	{
-		if (preList->x == xy.x && preList->y == xy.y)
-		{
-			break;
-		}
-
-		preList = preList->next;
-	}
-
-	// The new line character needs to be moved after the printed list.
-	if (preList->ch == '\n' && preList->prev != NULL)
-	{
-		preList = preList->prev;
-	}
-
-	// This node will be connected to the end of the copied list.
-	bufList *postList = preList->next;
-
-	// Connect the start of the copied list.
-	preList->next = cpy_List;
-	cpy_List->prev = preList;
-
-	// connect the remaining list if it exists.
-	if (postList != NULL)
-	{
-
-		cpy_List->next = postList;
-		postList->prev = cpy_List;
-	}
-}
-
 void deleteAllNodes(bufList *head)
 {
 	if (head == NULL)
@@ -157,7 +119,7 @@ coordinates addNode(bufList **head, int ch, coordinates xy)
 	if (*head == NULL)
 	{
 		*head = createNewNode(ch);
-		xy.x = 0;
+		xy.x = leftMargin;
 		xy.y += ch == '\n' ? 1 : 0;
 		return xy;
 	}
@@ -177,7 +139,7 @@ coordinates addNode(bufList **head, int ch, coordinates xy)
 			last_node->prev = next_node;
 			next_node->next = last_node;
 
-			xy.x = ch == '\n' ? 0 : last_node->x + 2;
+			xy.x = ch == '\n' ? leftMargin : last_node->x + 1;
 			xy.y += ch == '\n' ? 1 : 0;
 			return xy;
 		}
@@ -187,7 +149,7 @@ coordinates addNode(bufList **head, int ch, coordinates xy)
 			*head = next_node;
 			next_node->next = last_node;
 
-			xy.x = ch == '\n' ? 0 : last_node->x + 2;
+			xy.x = ch == '\n' ? leftMargin : last_node->x + 1;
 			xy.y += ch == '\n' ? 1 : 0;
 			return xy;
 		}
@@ -200,7 +162,7 @@ coordinates addNode(bufList **head, int ch, coordinates xy)
 	last_node->next = next_node;
 	next_node->prev = prev_node;
 
-	xy.x = ch == '\n' ? 0 : last_node->x + 2;
+	xy.x = ch == '\n' ? leftMargin : last_node->x + 2;
 	xy.y += ch == '\n' ? 1 : 0;
 	return xy;
 }
@@ -278,29 +240,6 @@ coordinates deleteNode(bufList **head, coordinates xy)
 	return xy;
 }
 
-int printNodes(bufList *head)
-{
-	int size = 0;
-	if (head == NULL)
-	{
-		wclear(stdscr);
-		wrefresh(stdscr);
-		return size;
-	}
-
-	// Print the nodes at x and y position.
-	wclear(stdscr);
-	while (head != NULL)
-	{
-		mvwaddch(stdscr, head->y, head->x, head->ch);
-		head = head->next;
-		++size;
-	}
-	wrefresh(stdscr);
-
-	return size;
-}
-
 coordinates getEndNodeCoordinates(bufList *head)
 {
 	coordinates xy = {0, 0};
@@ -331,7 +270,9 @@ void updateCoordinates(bufList **head)
 		return;
 	}
 
-	int x = 0, y = 0;
+	setLeftMargin(*head); 
+
+	int x = leftMargin, y = 0;
 	bufList *node = *head;
 	while (node != NULL)
 	{
@@ -340,7 +281,7 @@ void updateCoordinates(bufList **head)
 		++x;
 		if (node->ch == '\n')
 		{
-			x = 0;
+			x = leftMargin;
 			++y;
 		}
 		node = node->next;
@@ -451,7 +392,7 @@ void pasteCopiedlist(bufList **head, bufList *cpy_list, coordinates xy)
 	preList->next = cpy_list;
 	cpy_list->prev = cpy_list;
 
-	// Connect the post list to the copied list if any. 
+	// Connect the post list to the copied list if any.
 	if (cpy_list != NULL && postList != NULL)
 	{
 		for (; cpy_list->next != NULL; cpy_list = cpy_list->next)
@@ -464,7 +405,7 @@ void pasteCopiedlist(bufList **head, bufList *cpy_list, coordinates xy)
 
 void editTextFile(bufList *head, const char *fileName)
 {
-	coordinates xy = getEndNodeCoordinates(head);
+	coordinates xy = {0, 0};
 	dataCopied cpy_data = {NULL, {0, 0}, {0, 0}, false, false};
 	int ch = NO_KEY, size = 0, mode = EDIT;
 
@@ -475,7 +416,9 @@ void editTextFile(bufList *head, const char *fileName)
 	keypad(stdscr, true);
 
 	updateCoordinates(&head);
+	xy = getEndNodeCoordinates(head);
 	size = printNodes(head);
+	
 	while ((ch = wgetch(stdscr)))
 	{
 		if (ch == NO_KEY)
@@ -499,7 +442,7 @@ void editTextFile(bufList *head, const char *fileName)
 				++xy.y;
 				break;
 			case KEY_LEFT:
-				xy.x += xy.x != 0 ? -1 : 0;
+				xy.x += xy.x != leftMargin ? -1 : 0;
 				break;
 			case KEY_RIGHT:
 				++xy.x;
@@ -551,4 +494,76 @@ void editTextFile(bufList *head, const char *fileName)
 
 	deleteAllNodes(head);
 	endwin();
+}
+
+void setLeftMargin(bufList *head)
+{
+	int newlines = 0;
+
+	// Count all the newlines found in the text.
+	while (head != NULL)
+	{
+		if (head->ch == '\n')
+		{
+			++newlines;
+		}
+
+		head = head->next;
+	}
+	
+	// Set margin depending on the amount of newlines
+	if(newlines < one_hundred)
+	{
+		leftMargin = three; 
+	}
+	else if(newlines < one_thousand)
+	{
+		leftMargin = four;
+	}
+	else if(newlines < ten_thousand)
+	{
+		leftMargin = five;
+	}
+	else if(newlines < hundred_thousand)
+	{
+		leftMargin = six;
+	}
+}
+
+int printNodes(bufList *head)
+{
+	int size = 0, newlines = 1;
+	bool nlFlag = true;
+
+	// We need to clear terminal screen (empty) if no characters exists.
+	if (head == NULL)
+	{
+		wclear(stdscr);
+		wrefresh(stdscr);
+		return size;
+	}
+
+	// Print the nodes at x and y position.
+	wclear(stdscr);
+	while (head != NULL)
+	{
+		if(nlFlag)
+		{
+			nlFlag = false;
+			printw("%d:", newlines);
+		}
+
+		if(head->ch == '\n')
+		{
+			nlFlag = true;
+			++newlines; 
+		}
+
+		mvwaddch(stdscr, head->y, head->x, head->ch);
+		head = head->next;
+		++size;
+	}
+	wrefresh(stdscr);
+
+	return size;
 }
