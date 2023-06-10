@@ -170,7 +170,7 @@ coordinates addNode(bufList **head, int ch, coordinates xy)
 coordinates deleteNode(bufList **head, coordinates xy)
 {
 	// We can't free/delete a node which is NULL or if at end of coordinates.
-	if (*head == NULL || (xy.x == 0 && xy.y == 0))
+	if (*head == NULL || (xy.x == leftMargin && xy.y == 0))
 	{
 		return xy;
 	}
@@ -202,7 +202,8 @@ coordinates deleteNode(bufList **head, coordinates xy)
 	// If both prev and next are NULL this is the only node in the list.
 	if (del_node->prev == NULL && del_node->next == NULL)
 	{
-		xy.x = xy.y = 0;
+		xy.x = leftMargin;
+		xy.y = 0;
 		free(*head);
 		*head = NULL;
 		return xy;
@@ -539,6 +540,7 @@ int printNodes(bufList *head)
 	if (head == NULL)
 	{
 		wclear(stdscr);
+		printw("%d:", newlines);
 		wrefresh(stdscr);
 		return size;
 	}
@@ -558,12 +560,17 @@ int printNodes(bufList *head)
 			nlFlag = true;
 			++newlines; 
 		}
-
+		
 		mvwaddch(stdscr, head->y, head->x, head->ch);
 		head = head->next;
 		++size;
 	}
-	wrefresh(stdscr);
 
+	if(nlFlag == true)
+	{
+		printw("%d:", newlines);
+	}
+
+	wrefresh(stdscr);
 	return size;
 }
