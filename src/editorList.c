@@ -18,7 +18,7 @@ int rightMargin = 0;
 
 bufList *createNodesFromBuffer(char *buffer, bufList *head, long fileSize)
 {
-	coordinates xy = {leftMargin, 0};
+	coordinates xy = {0, 0};
 
 	// Add each character from the read file to the list.
 	for (int i = 0; i < fileSize; ++i)
@@ -28,7 +28,7 @@ bufList *createNodesFromBuffer(char *buffer, bufList *head, long fileSize)
 		if (buffer[i] == '\n')
 		{
 			++xy.y;
-			xy.x = leftMargin;
+			xy.x = 0;
 			continue;
 		}
 
@@ -119,7 +119,7 @@ coordinates addNode(bufList **head, int ch, coordinates xy)
 	if (*head == NULL)
 	{
 		*head = createNewNode(ch);
-		xy.x = 0;
+		xy.x = leftMargin;
 		xy.y += ch == '\n' ? 1 : 0;
 		return xy;
 	}
@@ -139,7 +139,7 @@ coordinates addNode(bufList **head, int ch, coordinates xy)
 			last_node->prev = next_node;
 			next_node->next = last_node;
 
-			xy.x = ch == '\n' ? 0 : last_node->x + 2;
+			xy.x = ch == '\n' ? leftMargin : last_node->x + 1;
 			xy.y += ch == '\n' ? 1 : 0;
 			return xy;
 		}
@@ -149,7 +149,7 @@ coordinates addNode(bufList **head, int ch, coordinates xy)
 			*head = next_node;
 			next_node->next = last_node;
 
-			xy.x = ch == '\n' ? 0 : last_node->x + 2;
+			xy.x = ch == '\n' ? leftMargin : last_node->x + 1;
 			xy.y += ch == '\n' ? 1 : 0;
 			return xy;
 		}
@@ -162,7 +162,7 @@ coordinates addNode(bufList **head, int ch, coordinates xy)
 	last_node->next = next_node;
 	next_node->prev = prev_node;
 
-	xy.x = ch == '\n' ? 0 : last_node->x + 2;
+	xy.x = ch == '\n' ? leftMargin : last_node->x + 2;
 	xy.y += ch == '\n' ? 1 : 0;
 	return xy;
 }
@@ -269,6 +269,8 @@ void updateCoordinates(bufList **head)
 	{
 		return;
 	}
+
+	setLeftMargin(*head); 
 
 	int x = leftMargin, y = 0;
 	bufList *node = *head;
@@ -403,7 +405,7 @@ void pasteCopiedlist(bufList **head, bufList *cpy_list, coordinates xy)
 
 void editTextFile(bufList *head, const char *fileName)
 {
-	coordinates xy = getEndNodeCoordinates(head);
+	coordinates xy = {0, 0};
 	dataCopied cpy_data = {NULL, {0, 0}, {0, 0}, false, false};
 	int ch = NO_KEY, size = 0, mode = EDIT;
 
@@ -414,7 +416,9 @@ void editTextFile(bufList *head, const char *fileName)
 	keypad(stdscr, true);
 
 	updateCoordinates(&head);
+	xy = getEndNodeCoordinates(head);
 	size = printNodes(head);
+	
 	while ((ch = wgetch(stdscr)))
 	{
 		if (ch == NO_KEY)
@@ -438,7 +442,7 @@ void editTextFile(bufList *head, const char *fileName)
 				++xy.y;
 				break;
 			case KEY_LEFT:
-				xy.x += xy.x != 0 ? -1 : 0;
+				xy.x += xy.x != leftMargin ? -1 : 0;
 				break;
 			case KEY_RIGHT:
 				++xy.x;
@@ -531,8 +535,6 @@ int printNodes(bufList *head)
 	int size = 0, newlines = 1;
 	bool nlFlag = true;
 
-	setLeftMargin(head);
-
 	// We need to clear terminal screen (empty) if no characters exists.
 	if (head == NULL)
 	{
@@ -548,7 +550,7 @@ int printNodes(bufList *head)
 		if(nlFlag)
 		{
 			nlFlag = false;
-			printw("%d", newlines);
+			printw("%d:", newlines);
 		}
 
 		if(head->ch == '\n')
@@ -557,7 +559,7 @@ int printNodes(bufList *head)
 			++newlines; 
 		}
 
-		mvwaddch(stdscr, head->y, head->x + leftMargin, head->ch);
+		mvwaddch(stdscr, head->y, head->x, head->ch);
 		head = head->next;
 		++size;
 	}
