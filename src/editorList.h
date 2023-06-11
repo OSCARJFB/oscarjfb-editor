@@ -35,6 +35,7 @@ typedef struct dataCopied
 
 extern int leftMargin;
 extern int rightMargin;
+extern int tabSize;
 
 enum lineLimit
 {

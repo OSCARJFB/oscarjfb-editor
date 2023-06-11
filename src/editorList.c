@@ -15,6 +15,7 @@
 
 int leftMargin = 0;
 int rightMargin = 0;
+int tabSize = 6;
 
 bufList *createNodesFromBuffer(char *buffer, bufList *head, long fileSize)
 {
@@ -279,12 +280,22 @@ void updateCoordinates(bufList **head)
 	{
 		node->x = x;
 		node->y = y;
-		++x;
+
+		if(node->ch == '\t')
+		{
+			x += tabSize;
+		}
+		else 
+		{
+			++x;
+		}
+
 		if (node->ch == '\n')
 		{
 			x = leftMargin;
 			++y;
 		}
+
 		node = node->next;
 	}
 }

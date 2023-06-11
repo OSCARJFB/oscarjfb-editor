@@ -1,3 +1,7 @@
-Hello how are you?
+#include <stdio.h>
 
-this is the time!
+int main(void)
+{
+	printf("Hello World\n");
+	return 0;
+}
