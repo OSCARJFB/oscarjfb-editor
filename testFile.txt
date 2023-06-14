@@ -1,16 +1,7 @@
 #include <stdio.h>
 
-int add(int x, int y);
-
 int main(void)
-{
+{		
 	printf("Hello World\n");
-	auto r = add(10, 10);
-	printf("%d\n", r);
 	return 0;
-}
-
-int add(int x, int y) 
-{
-	return x + y
-}
+}		

@@ -1,6 +1,6 @@
 /*
-    Writen by: Oscar Bergström
-    https://github.com/OSCARJFB
+	Writen by: Oscar Bergström
+	https://github.com/OSCARJFB
 
 	MIT License
 	Copyright (c) 2023 Oscar Bergström
@@ -13,7 +13,7 @@
 
 int main(int argc, char **argv)
 {
-	system("clear"); // replace with ncurses here. 
+	system("clear"); // replace with ncurses here.
 	long fileSize = 0;
 	char *buffer = NULL;
 	bufList *head = NULL;
