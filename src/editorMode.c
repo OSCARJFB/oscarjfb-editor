@@ -273,7 +273,7 @@ void updateCoordinates(bufList **head)
 		return;
 	}
 
-	setLeftMargin(*head); 
+	setLeftMargin(*head);
 
 	int x = leftMargin, y = 0;
 	bufList *node = *head;
@@ -282,11 +282,11 @@ void updateCoordinates(bufList **head)
 		node->x = x;
 		node->y = y;
 
-		if(node->ch == '\t')
+		if (node->ch == '\t')
 		{
 			x += tabSize;
 		}
-		else 
+		else
 		{
 			++x;
 		}
@@ -377,9 +377,9 @@ bufList *saveCopiedText(bufList *head, coordinates cpy_start, coordinates cp_end
 	return cpy_List;
 }
 
-void pasteCopiedlist(bufList **head, bufList *cpy_list, coordinates xy)
+void pasteCopiedlist(bufList **head, bufList *cpy_List, coordinates xy)
 {
-	if (*head == NULL || cpy_list == NULL)
+	if (*head == NULL || cpy_List == NULL)
 	{
 		return;
 	}
@@ -402,18 +402,21 @@ void pasteCopiedlist(bufList **head, bufList *cpy_list, coordinates xy)
 
 	// Connect the prelist to the copied list.
 	bufList *postList = preList->next;
-	preList->next = cpy_list;
-	cpy_list->prev = cpy_list;
+	preList->next = cpy_List;
+	cpy_List->prev = cpy_List;
 
 	// Connect the post list to the copied list if any.
-	if (cpy_list != NULL && postList != NULL)
+	if (cpy_List != NULL && postList != NULL)
 	{
-		for (; cpy_list->next != NULL; cpy_list = cpy_list->next)
-			;
+		for (; cpy_List->next != NULL; cpy_List = cpy_List->next)
+		{
+		};
 
-		cpy_list->next = postList;
-		postList->prev = cpy_list;
+		cpy_List->next = postList;
+		postList->prev = cpy_List;
 	}
+
+	return;
 }
 
 void setLeftMargin(bufList *head)
@@ -430,21 +433,21 @@ void setLeftMargin(bufList *head)
 
 		head = head->next;
 	}
-	
+
 	// Set margin depending on the amount of newlines
-	if(newlines < one_hundred)
+	if (newlines < one_hundred)
 	{
-		leftMargin = three; 
+		leftMargin = three;
 	}
-	else if(newlines < one_thousand)
+	else if (newlines < one_thousand)
 	{
 		leftMargin = four;
 	}
-	else if(newlines < ten_thousand)
+	else if (newlines < ten_thousand)
 	{
 		leftMargin = five;
 	}
-	else if(newlines < hundred_thousand)
+	else if (newlines < hundred_thousand)
 	{
 		leftMargin = six;
 	}
@@ -468,24 +471,24 @@ int printNodes(bufList *head)
 	wclear(stdscr);
 	while (head != NULL)
 	{
-		if(nlFlag)
+		if (nlFlag)
 		{
 			nlFlag = false;
 			printw("%d:", newlines);
 		}
 
-		if(head->ch == '\n')
+		if (head->ch == '\n')
 		{
 			nlFlag = true;
-			++newlines; 
+			++newlines;
 		}
-		
+
 		mvwaddch(stdscr, head->y, head->x, head->ch);
 		head = head->next;
 		++size;
 	}
 
-	if(nlFlag == true)
+	if (nlFlag == true)
 	{
 		printw("%d:", newlines);
 	}
@@ -494,20 +497,22 @@ int printNodes(bufList *head)
 	return size;
 }
 
-int setMode(void)
-{	
-	int ch;
-	while((ch = wgetch(stdscr)))
+int setMode(int ch)
+{
+	if (ch != ESC_KEY)
+	{
+		return EDIT;
+	}
+
+	while ((ch = wgetch(stdscr)))
 	{
 		switch (ch)
 		{
-		case 'e':
-			return EDIT;
 		case 's':
 			return SAVE;
-		case 'c': 
+		case 'c':
 			return COPY;
-		case 'v': 
+		case 'v':
 			return PASTE;
 		}
 	}
@@ -515,95 +520,120 @@ int setMode(void)
 	return EDIT;
 }
 
+void curseMode(void)
+{
+	static bool isCurse = false;
+
+	if (!isCurse)
+	{
+		initscr();
+		cbreak();
+		noecho();
+		curs_set(1);
+		keypad(stdscr, TRUE);
+		isCurse = true;
+	}
+	else
+	{
+		endwin();
+	}
+}
+
+coordinates moveArrowKeys(int ch, coordinates xy)
+{
+	switch (ch)
+	{
+	case KEY_UP:
+		xy.y += xy.y != 0 ? -1 : 0;
+		break;
+	case KEY_DOWN:
+		++xy.y;
+		break;
+	case KEY_LEFT:
+		xy.x += xy.x != leftMargin ? -1 : 0;
+		break;
+	case KEY_RIGHT:
+		++xy.x;
+		break;
+	}
+
+	return xy;
+}
+
+coordinates edit(bufList **head, coordinates xy, int ch)
+{
+	if (ch == KEY_BACKSPACE)
+	{
+		xy = deleteNode(head, xy);
+	}
+	else if ((ch >= ' ' && ch <= '~') || (ch == '\t' || ch == '\n'))
+	{
+		xy = addNode(head, ch, xy);
+	}
+
+	return xy;
+}
+
+dataCopied copy(dataCopied cpy_data, bufList *head, coordinates xy)
+{
+	if (cpy_data.cpy_List != NULL)
+	{
+		deleteAllNodes(cpy_data.cpy_List);
+		cpy_data.cpy_List = NULL;
+	}
+
+	cpy_data = getCopyStart(cpy_data, xy);
+	cpy_data = getCopyEnd(cpy_data, xy);
+
+	if (!cpy_data.isStart && !cpy_data.isEnd)
+	{
+		cpy_data.cpy_List = saveCopiedText(head, cpy_data.cpy_start, cpy_data.cpy_end);
+	}
+
+	return cpy_data;
+}
+
 void editTextFile(bufList *head, const char *fileName)
 {
-	coordinates xy = {0, 0};
 	dataCopied cpy_data = {NULL, {0, 0}, {0, 0}, false, false};
-	int ch = NO_KEY, size = 0, mode = EDIT;
-
-	initscr();
-	noecho();
-	nodelay(stdscr, true);
-	curs_set(1);
-	keypad(stdscr, true);
-
+	curseMode();
 	updateCoordinates(&head);
-	xy = getEndNodeCoordinates(head);
-	size = printNodes(head);
-	
+	coordinates xy = getEndNodeCoordinates(head);
+	int size = printNodes(head);
+
+	int ch = NO_KEY;
 	while ((ch = wgetch(stdscr)))
 	{
+
 		if (ch == NO_KEY)
 		{
 			continue;
 		}
 
-		if (ch == ESC_KEY)
-		{
-			mode = setMode();
-		}
+		int mode = setMode(ch);
+		xy = moveArrowKeys(ch, xy);
 
-		if (mode == EDIT)
+		switch (mode)
 		{
-			switch (ch)
-			{
-			case KEY_UP:
-				xy.y += xy.y != 0 ? -1 : 0;
-				break;
-			case KEY_DOWN:
-				++xy.y;
-				break;
-			case KEY_LEFT:
-				xy.x += xy.x != leftMargin ? -1 : 0;
-				break;
-			case KEY_RIGHT:
-				++xy.x;
-				break;
-			case KEY_BACKSPACE:
-				xy = deleteNode(&head, xy);
-				break;
-			default:
-				xy = addNode(&head, ch, xy);
-				break;
-			}
-		}
-		else if (mode == SAVE)
-		{
+		case EDIT:
+			xy = edit(&head, xy, ch);
+			break;
+		case SAVE:
 			save(head, size, fileName);
-		}
-		else if (mode == COPY)
-		{
-			if (cpy_data.cpy_List != NULL)
-			{
-				deleteAllNodes(cpy_data.cpy_List);
-				cpy_data.cpy_List = NULL;
-			}
-
-			cpy_data = getCopyStart(cpy_data, xy);
-			cpy_data = getCopyEnd(cpy_data, xy);
-
-			if (!cpy_data.isStart && !cpy_data.isEnd)
-			{
-				cpy_data.cpy_List = saveCopiedText(head, cpy_data.cpy_start, cpy_data.cpy_end);
-			}
-		}
-		else if (mode == PASTE)
-		{
+			break;
+		case COPY:
+			cpy_data = copy(cpy_data, head, xy);
+			break;
+		case PASTE:
 			pasteCopiedlist(&head, cpy_data.cpy_List, xy);
-			cpy_data.cpy_List = NULL;
-			mode = EDIT;
+			break;
 		}
 
-		if (mode == EDIT)
-		{
-			updateCoordinates(&head);
-			size = printNodes(head);
-			wmove(stdscr, xy.y, xy.x);
-			wrefresh(stdscr);
-		}
-		mode = EDIT;
+		updateCoordinates(&head);
+		size = printNodes(head);
+		wmove(stdscr, xy.y, xy.x);
 	}
 
 	deleteAllNodes(head);
-	endwin();
+	curseMode();
 }
