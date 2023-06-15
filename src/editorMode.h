@@ -33,9 +33,9 @@ typedef struct dataCopied
 	bool isStart, isEnd;
 } dataCopied;
 
-extern int leftMargin;
-extern int rightMargin;
-extern int tabSize;
+extern int _leftMargin;
+extern int _rightMargin;
+extern int _tabSize;
 
 enum lineLimit
 {
@@ -60,7 +60,8 @@ enum mode
 	EDIT = 0,
 	SAVE = 1,
 	COPY = 2,
-	PASTE = 3
+	PASTE = 3,
+	EXIT = 4
 };
 
 bufList *createNodesFromBuffer(char *buffer, bufList *head, long fileSize);
@@ -84,5 +85,7 @@ coordinates moveArrowKeys(int ch, coordinates xy);
 coordinates edit(bufList **head, coordinates xy, int ch);
 dataCopied copy(dataCopied cpy_data, bufList *head, coordinates xy);
 void editTextFile(bufList *head, const char *fileName);
+
+void printAllNodesAndExit(bufList *head);
 
 #endif // EDITORMODE_H

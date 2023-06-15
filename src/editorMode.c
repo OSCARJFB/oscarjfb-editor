@@ -14,9 +14,9 @@
 
 #include <ncurses.h>
 
-int leftMargin = 0;
-int rightMargin = 0;
-int tabSize = 6;
+int _leftMargin = 0;
+int _rightMargin = 0;
+int _tabSize = 6;
 
 bufList *createNodesFromBuffer(char *buffer, bufList *head, long fileSize)
 {
@@ -121,7 +121,7 @@ coordinates addNode(bufList **head, int ch, coordinates xy)
 	if (*head == NULL)
 	{
 		*head = createNewNode(ch);
-		xy.x = leftMargin;
+		xy.x = _leftMargin + 1;
 		xy.y += ch == '\n' ? 1 : 0;
 		return xy;
 	}
@@ -141,7 +141,7 @@ coordinates addNode(bufList **head, int ch, coordinates xy)
 			last_node->prev = next_node;
 			next_node->next = last_node;
 
-			xy.x = ch == '\n' ? leftMargin : last_node->x + 1;
+			xy.x = ch == '\n' ? _leftMargin : last_node->x + 1;
 			xy.y += ch == '\n' ? 1 : 0;
 			return xy;
 		}
@@ -151,7 +151,7 @@ coordinates addNode(bufList **head, int ch, coordinates xy)
 			*head = next_node;
 			next_node->next = last_node;
 
-			xy.x = ch == '\n' ? leftMargin : last_node->x + 1;
+			xy.x = ch == '\n' ? _leftMargin : last_node->x + 1;
 			xy.y += ch == '\n' ? 1 : 0;
 			return xy;
 		}
@@ -164,7 +164,7 @@ coordinates addNode(bufList **head, int ch, coordinates xy)
 	last_node->next = next_node;
 	next_node->prev = prev_node;
 
-	xy.x = ch == '\n' ? leftMargin : last_node->x + 2;
+	xy.x = ch == '\n' ? _leftMargin: last_node->x + 2;
 	xy.y += ch == '\n' ? 1 : 0;
 	return xy;
 }
@@ -172,7 +172,7 @@ coordinates addNode(bufList **head, int ch, coordinates xy)
 coordinates deleteNode(bufList **head, coordinates xy)
 {
 	// We can't free/delete a node which is NULL or if at end of coordinates.
-	if (*head == NULL || (xy.x == leftMargin && xy.y == 0))
+	if (*head == NULL || (xy.x == _leftMargin && xy.y == 0))
 	{
 		return xy;
 	}
@@ -204,7 +204,7 @@ coordinates deleteNode(bufList **head, coordinates xy)
 	// If both prev and next are NULL this is the only node in the list.
 	if (del_node->prev == NULL && del_node->next == NULL)
 	{
-		xy.x = leftMargin;
+		xy.x = _leftMargin;
 		xy.y = 0;
 		free(*head);
 		*head = NULL;
@@ -275,7 +275,7 @@ void updateCoordinates(bufList **head)
 
 	setLeftMargin(*head);
 
-	int x = leftMargin, y = 0;
+	int x = _leftMargin, y = 0;
 	bufList *node = *head;
 	while (node != NULL)
 	{
@@ -284,7 +284,7 @@ void updateCoordinates(bufList **head)
 
 		if (node->ch == '\t')
 		{
-			x += tabSize;
+			x += _tabSize;
 		}
 		else
 		{
@@ -293,7 +293,7 @@ void updateCoordinates(bufList **head)
 
 		if (node->ch == '\n')
 		{
-			x = leftMargin;
+			x = _leftMargin;
 			++y;
 		}
 
@@ -374,6 +374,8 @@ bufList *saveCopiedText(bufList *head, coordinates cpy_start, coordinates cp_end
 		head = head->next;
 	}
 
+	/* BUG HERE last node of copied list is not connected to its previous node.*/
+	printAllNodesAndExit(cpy_List); 
 	return cpy_List;
 }
 
@@ -437,19 +439,19 @@ void setLeftMargin(bufList *head)
 	// Set margin depending on the amount of newlines
 	if (newlines < one_hundred)
 	{
-		leftMargin = three;
+		_leftMargin = three;
 	}
 	else if (newlines < one_thousand)
 	{
-		leftMargin = four;
+		_leftMargin = four;
 	}
 	else if (newlines < ten_thousand)
 	{
-		leftMargin = five;
+		_leftMargin = five;
 	}
 	else if (newlines < hundred_thousand)
 	{
-		leftMargin = six;
+		_leftMargin = six;
 	}
 }
 
@@ -499,24 +501,24 @@ int printNodes(bufList *head)
 
 int setMode(int ch)
 {
-	if (ch != ESC_KEY)
+	if(ch != ESC_KEY)
 	{
 		return EDIT;
 	}
 
-	while ((ch = wgetch(stdscr)))
+	ch = wgetch(stdscr);
+	switch (ch)
 	{
-		switch (ch)
-		{
-		case 's':
-			return SAVE;
-		case 'c':
-			return COPY;
-		case 'v':
-			return PASTE;
-		}
+	case 's':
+		return SAVE;
+	case 'c':
+		return COPY;
+	case 'v':
+		return PASTE;
+	case 'e':
+		return EXIT;
 	}
-
+	
 	return EDIT;
 }
 
@@ -550,7 +552,7 @@ coordinates moveArrowKeys(int ch, coordinates xy)
 		++xy.y;
 		break;
 	case KEY_LEFT:
-		xy.x += xy.x != leftMargin ? -1 : 0;
+		xy.x += xy.x != _leftMargin ? -1 : 0;
 		break;
 	case KEY_RIGHT:
 		++xy.x;
@@ -600,17 +602,11 @@ void editTextFile(bufList *head, const char *fileName)
 	updateCoordinates(&head);
 	coordinates xy = getEndNodeCoordinates(head);
 	int size = printNodes(head);
+	bool is_running = true;
 
-	int ch = NO_KEY;
-	while ((ch = wgetch(stdscr)))
+	while (is_running)
 	{
-
-		if (ch == NO_KEY)
-		{
-			continue;
-		}
-
-		int mode = setMode(ch);
+		int ch = wgetch(stdscr), mode = setMode(ch);
 		xy = moveArrowKeys(ch, xy);
 
 		switch (mode)
@@ -627,6 +623,9 @@ void editTextFile(bufList *head, const char *fileName)
 		case PASTE:
 			pasteCopiedlist(&head, cpy_data.cpy_List, xy);
 			break;
+		case EXIT:
+			is_running = false;
+			break;
 		}
 
 		updateCoordinates(&head);
@@ -636,4 +635,33 @@ void editTextFile(bufList *head, const char *fileName)
 
 	deleteAllNodes(head);
 	curseMode();
+}
+
+void printAllNodesAndExit(bufList *head)
+{
+	endwin();
+	for(;head != NULL; head = head->next)
+	{
+		if(head->ch != '\n')
+		{
+			printf("char: %c", head->ch);
+		}
+		else 
+		{
+			printf("newline");
+		}
+		if(head->prev == NULL)
+			printf(" prev is null");
+		else 
+			printf(" prev is not null");
+
+		if(head->next == NULL)
+			printf(" next is null");
+		else 
+			printf(" next is not null");
+
+		printf("\n");
+	}
+	deleteAllNodes(head);
+	exit(EXIT_SUCCESS); 
 }

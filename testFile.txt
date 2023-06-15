@@ -1,7 +1,4 @@
-#include <stdio.h>
+jajamen
 
-int main(void)
-{		
-	printf("Hello World\n");
-	return 0;
-}		
+
+kan a
