@@ -8,45 +8,26 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include "curseSettings.h"
 #include "fileHandler.h"
 #include "editorMode.h"
 
 int main(int argc, char **argv)
 {
-	system("clear"); // replace with ncurses here.
-	long fileSize = 0;
-	char *buffer = NULL;
-	bufList *head = NULL;
+	curseMode();
 
 	FILE *FP = getFileFromArg(argc, argv);
-	if (FP == NULL)
-	{
-		exit(-1);
-	}
-
-	fileSize = getFileSize(FP);
-	if (fileSize == -1)
-	{
-		exit(-1);
-	}
-
-	buffer = allocateBuffer(buffer, fileSize);
-	if (buffer == NULL)
-	{
-		exit(-1);
-	}
-
+	long fileSize = getFileSize(FP);
+	char *buffer = allocateBuffer(fileSize);
+	
 	loadBuffer(buffer, FP, fileSize);
-
-	head = createNodesFromBuffer(buffer, head, fileSize);
-	if (head == NULL)
-	{
-		exit(-1);
-	}
+	bufList *head = createNodesFromBuffer(buffer, fileSize);
+	freeBuffer(buffer);
 
 	closeFile(FP);
 	editTextFile(head, argv[1]);
-	freeBuffer(buffer);
+	
+	curseMode();
 
 	return 0;
 }

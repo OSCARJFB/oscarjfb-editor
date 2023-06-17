@@ -64,7 +64,7 @@ enum mode
 	EXIT = 4
 };
 
-bufList *createNodesFromBuffer(char *buffer, bufList *head, long fileSize);
+bufList *createNodesFromBuffer(char *buffer, long fileSize);
 bufList *createNewNode(int ch);
 coordinates addNode(bufList **head, int ch, coordinates xy);
 coordinates deleteNode(bufList **head, coordinates xy);
@@ -80,7 +80,6 @@ void updateCoordinates(bufList **head);
 void setLeftMargin(bufList *head);
 int printNodes(bufList *head);
 int setMode(int ch);
-void curseMode(void);
 coordinates moveArrowKeys(int ch, coordinates xy);
 coordinates edit(bufList **head, coordinates xy, int ch);
 dataCopied copy(dataCopied cpy_data, bufList *head, coordinates xy);

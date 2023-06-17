@@ -13,7 +13,7 @@ FILE *getFileFromArg(int argc, char **argv);
 FILE *getFile(const char *path);
 void closeFile(FILE *FP);
 int getFileSize(FILE *FP);
-char *allocateBuffer(char *buffer, int fileSize);
+char *allocateBuffer(int fileSize);
 void freeBuffer(char *buffer);
 void loadBuffer(char *buffer, FILE *FP, long fileSize);
 

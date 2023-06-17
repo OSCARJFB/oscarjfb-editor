@@ -7,20 +7,24 @@
 */
 
 #include "editorMode.h"
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
-
 #include <ncurses.h>
 
 int _leftMargin = 0;
 int _rightMargin = 0;
 int _tabSize = 6;
 
-bufList *createNodesFromBuffer(char *buffer, bufList *head, long fileSize)
+bufList *createNodesFromBuffer(char *buffer, long fileSize)
 {
+	if(buffer == NULL)
+	{
+		return NULL;
+	}
+	
 	coordinates xy = {0, 0};
+	bufList *head = NULL;
 
 	// Add each character from the read file to the list.
 	for (int i = 0; i < fileSize; ++i)
@@ -49,6 +53,11 @@ void save(bufList *head, int size, const char *fileName)
 		return;
 	}
 
+	if(fileName == NULL)
+	{
+		/* Ask for a new file name here! */
+	}
+
 	FILE *fp = fopen(fileName, "w");
 	if (fp == NULL)
 	{
@@ -67,7 +76,6 @@ char *saveListToBuffer(bufList *head, int size)
 	char *buffer = malloc((size * sizeof(char)) + 1);
 	if (buffer == NULL)
 	{
-		puts("saveListToBuffer: malloc failed.");
 		return NULL;
 	}
 
@@ -418,6 +426,7 @@ void pasteCopiedlist(bufList **head, bufList *cpy_List, coordinates xy)
 		postList->prev = cpy_List;
 	}
 
+	printAllNodesAndExit(*head); 
 	return;
 }
 
@@ -522,25 +531,6 @@ int setMode(int ch)
 	return EDIT;
 }
 
-void curseMode(void)
-{
-	static bool isCurse = false;
-
-	if (!isCurse)
-	{
-		initscr();
-		cbreak();
-		noecho();
-		curs_set(1);
-		keypad(stdscr, TRUE);
-		isCurse = true;
-	}
-	else
-	{
-		endwin();
-	}
-}
-
 coordinates moveArrowKeys(int ch, coordinates xy)
 {
 	switch (ch)
@@ -598,7 +588,6 @@ dataCopied copy(dataCopied cpy_data, bufList *head, coordinates xy)
 void editTextFile(bufList *head, const char *fileName)
 {
 	dataCopied cpy_data = {NULL, {0, 0}, {0, 0}, false, false};
-	curseMode();
 	updateCoordinates(&head);
 	coordinates xy = getEndNodeCoordinates(head);
 	int size = printNodes(head);
@@ -634,13 +623,15 @@ void editTextFile(bufList *head, const char *fileName)
 	}
 
 	deleteAllNodes(head);
-	curseMode();
 }
 
 void printAllNodesAndExit(bufList *head)
 {
 	endwin();
-	for(;head != NULL; head = head->next)
+
+	puts("Forwards");
+
+	for(;head->next != NULL; head = head->next)
 	{
 		if(head->ch != '\n')
 		{
@@ -662,6 +653,33 @@ void printAllNodesAndExit(bufList *head)
 
 		printf("\n");
 	}
+	
+	/*
+	puts("Backwards");
+	for(;head->prev != NULL; head = head->prev)
+	{
+		if(head->ch != '\n')
+		{
+			printf("char: %c", head->ch);
+		}
+		else 
+		{
+			printf("newline");
+		}
+		if(head->prev == NULL)
+			printf(" prev is null");
+		else 
+			printf(" prev is not null");
+
+		if(head->next == NULL)
+			printf(" next is null");
+		else 
+			printf(" next is not null");
+
+		printf("\n");
+	}
+	*/
+
 	deleteAllNodes(head);
 	exit(EXIT_SUCCESS); 
 }
