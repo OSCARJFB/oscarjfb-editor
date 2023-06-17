@@ -362,14 +362,16 @@ bufList *saveCopiedText(bufList *head, coordinates cpy_start, coordinates cp_end
 			}
 			else
 			{
-				bufList *last_node = cpy_List, *prev_node = cpy_List;
+				bufList *last_node = cpy_List, *prev_node = NULL;
 				while (last_node->next != NULL)
 				{
 					last_node = last_node->next;
 				}
 
+				// Add the new node to the end of the list.
+				prev_node = last_node;
 				last_node->next = next_node;
-				last_node->prev = prev_node;
+				next_node->prev = prev_node;
 			}
 		}
 
@@ -382,8 +384,6 @@ bufList *saveCopiedText(bufList *head, coordinates cpy_start, coordinates cp_end
 		head = head->next;
 	}
 
-	/* BUG HERE last node of copied list is not connected to its previous node.*/
-	printAllNodesAndExit(cpy_List); 
 	return cpy_List;
 }
 
@@ -631,7 +631,7 @@ void printAllNodesAndExit(bufList *head)
 
 	puts("Forwards");
 
-	for(;head->next != NULL; head = head->next)
+	for(;head != NULL; head = head->next)
 	{
 		if(head->ch != '\n')
 		{
@@ -652,11 +652,16 @@ void printAllNodesAndExit(bufList *head)
 			printf(" next is not null");
 
 		printf("\n");
+
+		if(head->next == NULL)
+		{
+			break;
+		}
 	}
 	
-	/*
+
 	puts("Backwards");
-	for(;head->prev != NULL; head = head->prev)
+	for(;head != NULL; head = head->prev)
 	{
 		if(head->ch != '\n')
 		{
@@ -678,7 +683,6 @@ void printAllNodesAndExit(bufList *head)
 
 		printf("\n");
 	}
-	*/
 
 	deleteAllNodes(head);
 	exit(EXIT_SUCCESS); 
