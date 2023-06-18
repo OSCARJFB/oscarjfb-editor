@@ -63,9 +63,9 @@ int getFileSize(FILE *FP)
 	return bufferSize;
 }
 
-char *allocateBuffer(char *buffer, int fileSize)
+char *allocateBuffer(int fileSize)
 {
-	buffer = malloc(fileSize);
+	char *buffer = malloc(fileSize);
 	if (buffer == NULL)
 	{
 		puts("allocateBuffer: malloc() error");
@@ -79,7 +79,6 @@ void freeBuffer(char *buffer)
 {
 	if (buffer == NULL)
 	{
-		puts("Buffer was NULL, no deallocation was needed");
 		return;
 	}
 

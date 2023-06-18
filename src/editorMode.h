@@ -6,10 +6,10 @@
 	Copyright (c) 2023 Oscar Bergström
 */
 
-#include <stdbool.h>
-
 #ifndef EDITORMODE_H
 #define EDITORMODE_H
+
+#include <stdbool.h>
 
 #define ESC_KEY 27
 #define NO_KEY -1
@@ -33,9 +33,9 @@ typedef struct dataCopied
 	bool isStart, isEnd;
 } dataCopied;
 
-extern int leftMargin;
-extern int rightMargin;
-extern int tabSize;
+extern int _leftMargin;
+extern int _rightMargin;
+extern int _tabSize;
 
 enum lineLimit
 {
@@ -60,10 +60,11 @@ enum mode
 	EDIT = 0,
 	SAVE = 1,
 	COPY = 2,
-	PASTE = 3
+	PASTE = 3,
+	EXIT = 4
 };
 
-bufList *createNodesFromBuffer(char *buffer, bufList *head, long fileSize);
+bufList *createNodesFromBuffer(char *buffer, long fileSize);
 bufList *createNewNode(int ch);
 coordinates addNode(bufList **head, int ch, coordinates xy);
 coordinates deleteNode(bufList **head, coordinates xy);
@@ -79,7 +80,6 @@ void updateCoordinates(bufList **head);
 void setLeftMargin(bufList *head);
 int printNodes(bufList *head);
 int setMode(int ch);
-void curseMode(void);
 coordinates moveArrowKeys(int ch, coordinates xy);
 coordinates edit(bufList **head, coordinates xy, int ch);
 dataCopied copy(dataCopied cpy_data, bufList *head, coordinates xy);
