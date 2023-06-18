@@ -14,7 +14,7 @@
 
 int main(int argc, char **argv)
 {
-	curseMode();
+	curseMode(true);
 
 	FILE *FP = getFileFromArg(argc, argv);
 	long fileSize = getFileSize(FP);
@@ -27,7 +27,7 @@ int main(int argc, char **argv)
 	closeFile(FP);
 	editTextFile(head, argv[1]);
 	
-	curseMode();
+	curseMode(false);
 
 	return 0;
 }

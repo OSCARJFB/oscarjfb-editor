@@ -9,6 +9,8 @@
 #ifndef CURSESETTINGS_H
 #define CURSESETTINGS_H
 
-void curseMode(void);
+#include <stdbool.h>
+
+void curseMode(bool isCurse);
 
 #endif // CURSESETTINGS_H

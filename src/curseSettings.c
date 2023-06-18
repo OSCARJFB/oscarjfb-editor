@@ -9,11 +9,9 @@
 #include "curseSettings.h"
 #include <ncurses.h>
 
-void curseMode(void)
+void curseMode(bool isCurse)
 {
-	static bool isCurse = false;
-
-	if (!isCurse)
+	if (isCurse)
 	{
 		initscr();
 		cbreak();

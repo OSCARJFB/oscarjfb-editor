@@ -6,10 +6,10 @@
 	Copyright (c) 2023 Oscar Bergström
 */
 
-#include <stdbool.h>
-
 #ifndef EDITORMODE_H
 #define EDITORMODE_H
+
+#include <stdbool.h>
 
 #define ESC_KEY 27
 #define NO_KEY -1
@@ -84,7 +84,5 @@ coordinates moveArrowKeys(int ch, coordinates xy);
 coordinates edit(bufList **head, coordinates xy, int ch);
 dataCopied copy(dataCopied cpy_data, bufList *head, coordinates xy);
 void editTextFile(bufList *head, const char *fileName);
-
-void printAllNodesAndExit(bufList *head);
 
 #endif // EDITORMODE_H

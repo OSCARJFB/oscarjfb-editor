@@ -18,11 +18,11 @@ int _tabSize = 6;
 
 bufList *createNodesFromBuffer(char *buffer, long fileSize)
 {
-	if(buffer == NULL)
+	if (buffer == NULL)
 	{
 		return NULL;
 	}
-	
+
 	coordinates xy = {0, 0};
 	bufList *head = NULL;
 
@@ -53,7 +53,7 @@ void save(bufList *head, int size, const char *fileName)
 		return;
 	}
 
-	if(fileName == NULL)
+	if (fileName == NULL)
 	{
 		/* Ask for a new file name here! */
 	}
@@ -172,7 +172,7 @@ coordinates addNode(bufList **head, int ch, coordinates xy)
 	last_node->next = next_node;
 	next_node->prev = prev_node;
 
-	xy.x = ch == '\n' ? _leftMargin: last_node->x + 2;
+	xy.x = ch == '\n' ? _leftMargin : last_node->x + 2;
 	xy.y += ch == '\n' ? 1 : 0;
 	return xy;
 }
@@ -394,7 +394,7 @@ void pasteCopiedlist(bufList **head, bufList *cpy_List, coordinates xy)
 		return;
 	}
 
-	// First the "paste" location should be found.
+	// First find the paste start location should.
 	bufList *preList = *head;
 	for (; preList->next != NULL; preList = preList->next)
 	{
@@ -404,7 +404,7 @@ void pasteCopiedlist(bufList **head, bufList *cpy_List, coordinates xy)
 		}
 	}
 
-	// The new line character needs to be moved after the printed list.
+	// Last character should not be a newline.
 	if (preList->ch == '\n')
 	{
 		preList = preList->prev;
@@ -413,7 +413,7 @@ void pasteCopiedlist(bufList **head, bufList *cpy_List, coordinates xy)
 	// Connect the prelist to the copied list.
 	bufList *postList = preList->next;
 	preList->next = cpy_List;
-	cpy_List->prev = cpy_List;
+	cpy_List->prev = preList;
 
 	// Connect the post list to the copied list if any.
 	if (cpy_List != NULL && postList != NULL)
@@ -425,9 +425,6 @@ void pasteCopiedlist(bufList **head, bufList *cpy_List, coordinates xy)
 		cpy_List->next = postList;
 		postList->prev = cpy_List;
 	}
-
-	printAllNodesAndExit(*head); 
-	return;
 }
 
 void setLeftMargin(bufList *head)
@@ -510,7 +507,7 @@ int printNodes(bufList *head)
 
 int setMode(int ch)
 {
-	if(ch != ESC_KEY)
+	if (ch != ESC_KEY)
 	{
 		return EDIT;
 	}
@@ -527,7 +524,7 @@ int setMode(int ch)
 	case 'e':
 		return EXIT;
 	}
-	
+
 	return EDIT;
 }
 
@@ -621,69 +618,4 @@ void editTextFile(bufList *head, const char *fileName)
 		size = printNodes(head);
 		wmove(stdscr, xy.y, xy.x);
 	}
-
-	deleteAllNodes(head);
-}
-
-void printAllNodesAndExit(bufList *head)
-{
-	endwin();
-
-	puts("Forwards");
-
-	for(;head != NULL; head = head->next)
-	{
-		if(head->ch != '\n')
-		{
-			printf("char: %c", head->ch);
-		}
-		else 
-		{
-			printf("newline");
-		}
-		if(head->prev == NULL)
-			printf(" prev is null");
-		else 
-			printf(" prev is not null");
-
-		if(head->next == NULL)
-			printf(" next is null");
-		else 
-			printf(" next is not null");
-
-		printf("\n");
-
-		if(head->next == NULL)
-		{
-			break;
-		}
-	}
-	
-
-	puts("Backwards");
-	for(;head != NULL; head = head->prev)
-	{
-		if(head->ch != '\n')
-		{
-			printf("char: %c", head->ch);
-		}
-		else 
-		{
-			printf("newline");
-		}
-		if(head->prev == NULL)
-			printf(" prev is null");
-		else 
-			printf(" prev is not null");
-
-		if(head->next == NULL)
-			printf(" next is null");
-		else 
-			printf(" next is not null");
-
-		printf("\n");
-	}
-
-	deleteAllNodes(head);
-	exit(EXIT_SUCCESS); 
 }
