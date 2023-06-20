@@ -7,12 +7,16 @@ Each node in this linked list should have an x and y coordinate indicating chara
 TODO
 
 Bugs:
-- The coordinates in addNode() are incorrectly calcuated on x-axis when newlines are read.
-- The last node in the copy list doesn't link its *prev pointer correctly to the previous node.
+- Tab is not working correctly.
+- Repaste of copied text doesn't work.
 
 Planned features: 
 - Enable running the software wihout a passed file arg. 
 - Save should be able to change or give a name filename to an edited file. 
-- Replace functionality would be cool! In other words the possiblity of replacing all matching words in one sweep. 
+- Find and Replace functionality would be cool! In other words the possiblity of replacing all matching words in one sweep. 
 - Code structure could be improved.
-- Performance!!!
+- Performance!
+
+Fixed
+- Calculation of x coordinates when newline is entered.
+- copy and pasting list creation and pasting.

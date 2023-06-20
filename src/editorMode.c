@@ -15,6 +15,7 @@
 int _leftMargin = 0;
 int _rightMargin = 0;
 int _tabSize = 6;
+int _copySize = 0;
 
 bufList *createNodesFromBuffer(char *buffer, long fileSize)
 {
@@ -126,17 +127,16 @@ bufList *createNewNode(int ch)
 coordinates addNode(bufList **head, int ch, coordinates xy)
 {
 	// Currently there is no list existing.
+	xy.y += ch == '\n' ? 1 : 0;
 	if (*head == NULL)
 	{
 		*head = createNewNode(ch);
 		xy.x = _leftMargin + 1;
-		xy.y += ch == '\n' ? 1 : 0;
 		return xy;
 	}
 
 	// Create a new node and add base values, depending on parameter input.
-	bufList *next_node = createNewNode(ch);
-	bufList *last_node = *head, *prev_node = NULL;
+	bufList *next_node = createNewNode(ch), *last_node = *head, *prev_node = NULL;
 
 	// Find the last node in the list.
 	while (last_node->next != NULL)
@@ -149,8 +149,8 @@ coordinates addNode(bufList **head, int ch, coordinates xy)
 			last_node->prev = next_node;
 			next_node->next = last_node;
 
-			xy.x = ch == '\n' ? _leftMargin : last_node->x + 1;
-			xy.y += ch == '\n' ? 1 : 0;
+			xy.x = ch == '\n' ? _leftMargin : last_node->ch == '\n' ? _leftMargin + 1
+																	: last_node->x + 1;
 			return xy;
 		}
 		else if (last_node->x == xy.x && last_node->y == xy.y && last_node->prev == NULL)
@@ -159,8 +159,8 @@ coordinates addNode(bufList **head, int ch, coordinates xy)
 			*head = next_node;
 			next_node->next = last_node;
 
-			xy.x = ch == '\n' ? _leftMargin : last_node->x + 1;
-			xy.y += ch == '\n' ? 1 : 0;
+			xy.x = ch == '\n' ? _leftMargin : last_node->ch == '\n' ? _leftMargin + 1
+																	: last_node->x + 1;
 			return xy;
 		}
 
@@ -172,8 +172,8 @@ coordinates addNode(bufList **head, int ch, coordinates xy)
 	last_node->next = next_node;
 	next_node->prev = prev_node;
 
-	xy.x = ch == '\n' ? _leftMargin : last_node->x + 2;
-	xy.y += ch == '\n' ? 1 : 0;
+	xy.x = ch == '\n' ? _leftMargin : last_node->ch == '\n' ? _leftMargin + 1
+															: last_node->x + 2;
 	return xy;
 }
 
@@ -340,44 +340,38 @@ dataCopied getCopyEnd(dataCopied cpy_data, coordinates xy)
 	return cpy_data;
 }
 
-bufList *saveCopiedText(bufList *head, coordinates cpy_start, coordinates cp_end)
+char *saveCopiedText(bufList *head, coordinates cpy_start, coordinates cp_end)
 {
-	bufList *cpy_List = NULL;
+	char *cpy_List = NULL;
+	int i = 0;
 	bool start_found = false;
+
 	while (head != NULL)
 	{
 		// Start were copy point is found, add every node until the end of the list is found.
 		if (((head->x == cpy_start.x && head->y == cpy_start.y) || start_found))
 		{
-			bufList *next_node = createNewNode(head->ch);
-			if (next_node == NULL)
-			{
-				return NULL;
-			}
-
 			if (cpy_List == NULL)
 			{
-				cpy_List = next_node;
-				start_found = true;
-			}
-			else
-			{
-				bufList *last_node = cpy_List, *prev_node = NULL;
-				while (last_node->next != NULL)
+				cpy_List = malloc(CPY_BUFFER_SIZE * sizeof(char));
+				if (cpy_List == NULL)
 				{
-					last_node = last_node->next;
+					return NULL;
 				}
 
-				// Add the new node to the end of the list.
-				prev_node = last_node;
-				last_node->next = next_node;
-				next_node->prev = prev_node;
+				start_found = true;
+			}
+
+			if (i < CPY_BUFFER_SIZE)
+			{
+				cpy_List[i++] = head->ch;
 			}
 		}
 
 		// If true end of list is found.
 		if (head->x == cp_end.x && head->y == cp_end.y)
 		{
+			_copySize = i;
 			break;
 		}
 
@@ -387,7 +381,7 @@ bufList *saveCopiedText(bufList *head, coordinates cpy_start, coordinates cp_end
 	return cpy_List;
 }
 
-void pasteCopiedlist(bufList **head, bufList *cpy_List, coordinates xy)
+void pasteCopiedlist(bufList **head, char *cpy_List, coordinates xy)
 {
 	if (*head == NULL || cpy_List == NULL)
 	{
@@ -410,20 +404,22 @@ void pasteCopiedlist(bufList **head, bufList *cpy_List, coordinates xy)
 		preList = preList->prev;
 	}
 
-	// Connect the prelist to the copied list.
 	bufList *postList = preList->next;
-	preList->next = cpy_List;
-	cpy_List->prev = preList;
 
-	// Connect the post list to the copied list if any.
-	if (cpy_List != NULL && postList != NULL)
+	// Create and chain each new node from the copy buffer.
+	for (int i = 0; i < _copySize; ++i)
 	{
-		for (; cpy_List->next != NULL; cpy_List = cpy_List->next)
-		{
-		};
+		bufList *new_node = createNewNode(cpy_List[i]);
+		preList->next = new_node;
+		new_node->prev = preList;
+		preList = preList->next;
+	}
 
-		cpy_List->next = postList;
-		postList->prev = cpy_List;
+	// If any part of the list is remaining chain it to the new list.
+	if (postList != NULL)
+	{
+		preList->next = postList;
+		postList->prev = preList;
 	}
 }
 
@@ -567,8 +563,7 @@ dataCopied copy(dataCopied cpy_data, bufList *head, coordinates xy)
 {
 	if (cpy_data.cpy_List != NULL)
 	{
-		deleteAllNodes(cpy_data.cpy_List);
-		cpy_data.cpy_List = NULL;
+		free(cpy_data.cpy_List);
 	}
 
 	cpy_data = getCopyStart(cpy_data, xy);
@@ -618,4 +613,66 @@ void editTextFile(bufList *head, const char *fileName)
 		size = printNodes(head);
 		wmove(stdscr, xy.y, xy.x);
 	}
+}
+
+void TEST_LIST_LINKING(bufList *head)
+{
+	endwin();
+
+	puts("Forwards");
+
+	for (; head != NULL; head = head->next)
+	{
+		if (head->ch != '\n')
+		{
+			printf("char: %c", head->ch);
+		}
+		else
+		{
+			printf("newline");
+		}
+		if (head->prev == NULL)
+			printf(" prev is null");
+		else
+			printf(" prev is not null");
+
+		if (head->next == NULL)
+			printf(" next is null");
+		else
+			printf(" next is not null");
+
+		printf("\n");
+
+		if (head->next == NULL)
+		{
+			break;
+		}
+	}
+
+	puts("Backwards");
+	for (; head != NULL; head = head->prev)
+	{
+		if (head->ch != '\n')
+		{
+			printf("char: %c", head->ch);
+		}
+		else
+		{
+			printf("newline");
+		}
+		if (head->prev == NULL)
+			printf(" prev is null");
+		else
+			printf(" prev is not null");
+
+		if (head->next == NULL)
+			printf(" next is null");
+		else
+			printf(" next is not null");
+
+		printf("\n");
+	}
+
+	deleteAllNodes(head);
+	exit(1);
 }

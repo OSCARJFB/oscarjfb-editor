@@ -18,7 +18,6 @@ void curseMode(bool isCurse)
 		noecho();
 		curs_set(1);
 		keypad(stdscr, TRUE);
-		isCurse = true;
 	}
 	else
 	{
