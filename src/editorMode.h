@@ -13,6 +13,7 @@
 
 #define ESC_KEY 27
 #define NO_KEY -1
+#define CPY_BUFFER_SIZE 1000
 
 typedef struct coordinates
 {
@@ -28,7 +29,7 @@ typedef struct bufList
 
 typedef struct dataCopied
 {
-	bufList *cpy_List;
+	char *cpy_List;
 	coordinates cpy_start, cpy_end;
 	bool isStart, isEnd;
 } dataCopied;
@@ -36,6 +37,7 @@ typedef struct dataCopied
 extern int _leftMargin;
 extern int _rightMargin;
 extern int _tabSize;
+extern int _copySize; 
 
 enum lineLimit
 {
@@ -71,8 +73,8 @@ coordinates deleteNode(bufList **head, coordinates xy);
 coordinates getEndNodeCoordinates(bufList *head);
 dataCopied getCopyStart(dataCopied cp_data, coordinates xy);
 dataCopied getCopyEnd(dataCopied cp_data, coordinates xy);
-bufList *saveCopiedText(bufList *head, coordinates cp_start, coordinates cp_end);
-void pasteCopiedlist(bufList **head, bufList *cpy_List, coordinates xy);
+char *saveCopiedText(bufList *head, coordinates cp_start, coordinates cp_end);
+void pasteCopiedlist(bufList **head, char *cpy_List, coordinates xy);
 void save(bufList *head, int size, const char *fileName);
 char *saveListToBuffer(bufList *head, int size);
 void deleteAllNodes(bufList *head);
@@ -84,5 +86,6 @@ coordinates moveArrowKeys(int ch, coordinates xy);
 coordinates edit(bufList **head, coordinates xy, int ch);
 dataCopied copy(dataCopied cpy_data, bufList *head, coordinates xy);
 void editTextFile(bufList *head, const char *fileName);
+void TEST_LIST_LINKING(bufList *head);
 
 #endif // EDITORMODE_H
