@@ -40,12 +40,22 @@ FILE *getFile(const char *path)
 
 void closeFile(FILE *FP)
 {
+	if(FP == NULL)
+	{
+		return; 
+	}
+	
 	fclose(FP);
 	FP = NULL;
 }
 
 int getFileSize(FILE *FP)
 {
+	if(FP == NULL)
+	{
+		return 0; 
+	}
+	
 	long bufferSize = 0;
 	if (fseek(FP, 0, SEEK_END) == -1)
 	{
@@ -65,6 +75,11 @@ int getFileSize(FILE *FP)
 
 char *allocateBuffer(int fileSize)
 {
+	if(fileSize == 0)
+	{
+		return NULL; 
+	}
+
 	char *buffer = malloc(fileSize);
 	if (buffer == NULL)
 	{
@@ -88,6 +103,11 @@ void freeBuffer(char *buffer)
 
 void loadBuffer(char *buffer, FILE *FP, long fileSize)
 {
+	if(buffer == NULL)
+	{
+		return;
+	}
+	
 	rewind(FP);
 	while (fread(buffer, fileSize, 1, FP) > 0)
 	{

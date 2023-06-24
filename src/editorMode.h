@@ -66,8 +66,18 @@ enum mode
 	EXIT = 4
 };
 
+enum state
+{
+	ADD_FIRST_NODE = 0, 
+	ADD_MIDDLE_NODE = 1,
+	ADD_END_NODE = 2,
+	DEL_NODE = 3,
+	DEL_AT_END = 4
+};
+
 bufList *createNodesFromBuffer(char *buffer, long fileSize);
 bufList *createNewNode(int ch);
+coordinates onEditCoordinates(coordinates xy, int sFlag, int ch, bufList *last_node);
 coordinates addNode(bufList **head, int ch, coordinates xy);
 coordinates deleteNode(bufList **head, coordinates xy);
 coordinates getEndNodeCoordinates(bufList *head);
