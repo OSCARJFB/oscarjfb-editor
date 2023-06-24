@@ -171,21 +171,10 @@ coordinates addNode(bufList **head, int ch, coordinates xy)
 	// Create a new node and add base values, depending on parameter input.
 	bufList *next_node = createNewNode(ch), *last_node = *head, *prev_node = NULL;
 
-	// Find the last node in the list.
+	// Find the last node in the list, for each step check if ch was added in bounderies.
 	while (last_node->next != NULL)
 	{
-		// If added at cursor position, link the new node inbetween the old nodes.
-		if (last_node->x == xy.x && last_node->y == xy.y && last_node->prev != NULL)
-		{
-			last_node->prev->next = next_node;
-			next_node->prev = last_node->prev;
-			last_node->prev = next_node;
-			next_node->next = last_node;
-
-			xy = onEditCoordinates(xy, ADD_MIDDLE_NODE, ch, last_node);
-			return xy;
-		}
-		else if (last_node->x == xy.x && last_node->y == xy.y && last_node->prev == NULL)
+		if (last_node->x == xy.x && last_node->y == xy.y && last_node->prev == NULL)
 		{
 			last_node->prev = next_node;
 			*head = next_node;
@@ -196,9 +185,20 @@ coordinates addNode(bufList **head, int ch, coordinates xy)
 		}
 
 		last_node = last_node->next;
+		
+		if (last_node->x == xy.x && last_node->y == xy.y && last_node->prev != NULL)
+		{
+			last_node->prev->next = next_node;
+			next_node->prev = last_node->prev;
+			last_node->prev = next_node;
+			next_node->next = last_node;
+
+			xy = onEditCoordinates(xy, ADD_MIDDLE_NODE, ch, last_node);
+			return xy;
+		}
 	}
 
-	// Add the new node to the end of the list.
+	// Add the node at the end since ch was not added within the bounderies of the list.
 	prev_node = last_node;
 	last_node->next = next_node;
 	next_node->prev = prev_node;
