@@ -22,9 +22,10 @@ int main(int argc, char **argv)
 	
 	loadBuffer(buffer, FP, fileSize);
 	bufList *head = createNodesFromBuffer(buffer, fileSize);
+	
 	freeBuffer(buffer);
-
 	closeFile(FP);
+	
 	editTextFile(head, argv[1]);
 	
 	curseMode(false);

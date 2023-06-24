@@ -124,24 +124,68 @@ bufList *createNewNode(int ch)
 	return next_node;
 }
 
+coordinates onEditCoordinates(coordinates xy, int sFlag, int ch, bufList *node)
+{
+	switch (sFlag)
+	{
+	case ADD_FIRST_NODE:
+		xy.x = _leftMargin + 1;
+		xy.y += ch == '\n' ? 1 : 0;
+		xy.x += ch == '\t' ? _tabSize : 0;
+		break;
+	case ADD_MIDDLE_NODE:
+		xy.x = ch == '\n' ? _leftMargin : node->ch == '\n' ? node->x + 1
+														   : node->x + 1;
+		xy.y += ch == '\n' ? 1 : 0;
+		xy.x += ch == '\t' ? _tabSize : 0;
+		break;
+	case ADD_END_NODE:
+		xy.x = ch == '\n' ? _leftMargin : node->ch == '\n' ? node->x + 2
+														   : node->x + 2;
+		xy.y += ch == '\n' ? 1 : 0;
+		xy.x += ch == '\t' ? _tabSize : 0;
+		break;
+	case DEL_NODE:
+		xy.x = node->x;
+		xy.y = node->y;
+		break;
+	case DEL_AT_END:
+		xy.x = _leftMargin;
+		xy.y = 0;
+		break;
+	}
+
+	return xy;
+}
+
 coordinates addNode(bufList **head, int ch, coordinates xy)
 {
 	// Currently there is no list existing.
-	xy.y += ch == '\n' ? 1 : 0;
 	if (*head == NULL)
 	{
 		*head = createNewNode(ch);
-		xy.x = _leftMargin + 1;
+		xy = onEditCoordinates(xy, ADD_FIRST_NODE, ch, NULL);
 		return xy;
 	}
 
 	// Create a new node and add base values, depending on parameter input.
 	bufList *next_node = createNewNode(ch), *last_node = *head, *prev_node = NULL;
 
-	// Find the last node in the list.
+	// Find the last node in the list, for each step check if ch was added in bounderies.
 	while (last_node->next != NULL)
 	{
-		// If added at cursor position, link the new node inbetween the old nodes.
+		if (last_node->x == xy.x && last_node->y == xy.y && last_node->prev == NULL)
+		{
+			last_node->prev = next_node;
+			*head = next_node;
+			next_node->next = last_node;
+
+			xy = onEditCoordinates(xy, ADD_MIDDLE_NODE, ch, last_node);
+			return xy;
+		}
+
+		last_node = last_node->next;
+		
 		if (last_node->x == xy.x && last_node->y == xy.y && last_node->prev != NULL)
 		{
 			last_node->prev->next = next_node;
@@ -149,31 +193,17 @@ coordinates addNode(bufList **head, int ch, coordinates xy)
 			last_node->prev = next_node;
 			next_node->next = last_node;
 
-			xy.x = ch == '\n' ? _leftMargin : last_node->ch == '\n' ? _leftMargin + 1
-																	: last_node->x + 1;
+			xy = onEditCoordinates(xy, ADD_MIDDLE_NODE, ch, last_node);
 			return xy;
 		}
-		else if (last_node->x == xy.x && last_node->y == xy.y && last_node->prev == NULL)
-		{
-			last_node->prev = next_node;
-			*head = next_node;
-			next_node->next = last_node;
-
-			xy.x = ch == '\n' ? _leftMargin : last_node->ch == '\n' ? _leftMargin + 1
-																	: last_node->x + 1;
-			return xy;
-		}
-
-		last_node = last_node->next;
 	}
 
-	// Add the new node to the end of the list.
+	// Add the node at the end since ch was not added within the bounderies of the list.
 	prev_node = last_node;
 	last_node->next = next_node;
 	next_node->prev = prev_node;
 
-	xy.x = ch == '\n' ? _leftMargin : last_node->ch == '\n' ? _leftMargin + 1
-															: last_node->x + 2;
+	xy = onEditCoordinates(xy, ADD_END_NODE, ch, last_node);
 	return xy;
 }
 
@@ -212,8 +242,7 @@ coordinates deleteNode(bufList **head, coordinates xy)
 	// If both prev and next are NULL this is the only node in the list.
 	if (del_node->prev == NULL && del_node->next == NULL)
 	{
-		xy.x = _leftMargin;
-		xy.y = 0;
+		xy = onEditCoordinates(xy, DEL_AT_END, 0, NULL);
 		free(*head);
 		*head = NULL;
 		return xy;
@@ -242,8 +271,7 @@ coordinates deleteNode(bufList **head, coordinates xy)
 
 	if (del_node != NULL)
 	{
-		xy.x = del_node->x;
-		xy.y = del_node->y;
+		xy = onEditCoordinates(xy, DEL_NODE, 0, del_node);
 		free(del_node);
 		del_node = NULL;
 	}
@@ -613,66 +641,4 @@ void editTextFile(bufList *head, const char *fileName)
 		size = printNodes(head);
 		wmove(stdscr, xy.y, xy.x);
 	}
-}
-
-void TEST_LIST_LINKING(bufList *head)
-{
-	endwin();
-
-	puts("Forwards");
-
-	for (; head != NULL; head = head->next)
-	{
-		if (head->ch != '\n')
-		{
-			printf("char: %c", head->ch);
-		}
-		else
-		{
-			printf("newline");
-		}
-		if (head->prev == NULL)
-			printf(" prev is null");
-		else
-			printf(" prev is not null");
-
-		if (head->next == NULL)
-			printf(" next is null");
-		else
-			printf(" next is not null");
-
-		printf("\n");
-
-		if (head->next == NULL)
-		{
-			break;
-		}
-	}
-
-	puts("Backwards");
-	for (; head != NULL; head = head->prev)
-	{
-		if (head->ch != '\n')
-		{
-			printf("char: %c", head->ch);
-		}
-		else
-		{
-			printf("newline");
-		}
-		if (head->prev == NULL)
-			printf(" prev is null");
-		else
-			printf(" prev is not null");
-
-		if (head->next == NULL)
-			printf(" next is null");
-		else
-			printf(" next is not null");
-
-		printf("\n");
-	}
-
-	deleteAllNodes(head);
-	exit(1);
 }
