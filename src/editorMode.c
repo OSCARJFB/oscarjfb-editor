@@ -134,13 +134,13 @@ coordinates onEditCoordinates(coordinates xy, int sFlag, int ch, bufList *node)
 		xy.x += ch == '\t' ? _tabSize : 0;
 		break;
 	case ADD_MIDDLE_NODE:
-		xy.x = ch == '\n' ? _leftMargin : node->ch == '\n' ? _leftMargin + 1
+		xy.x = ch == '\n' ? _leftMargin : node->ch == '\n' ? node->x + 1
 														   : node->x + 1;
 		xy.y += ch == '\n' ? 1 : 0;
 		xy.x += ch == '\t' ? _tabSize : 0;
 		break;
 	case ADD_END_NODE:
-		xy.x = ch == '\n' ? _leftMargin : node->ch == '\n' ? _leftMargin + 1
+		xy.x = ch == '\n' ? _leftMargin : node->ch == '\n' ? node->x + 2
 														   : node->x + 2;
 		xy.y += ch == '\n' ? 1 : 0;
 		xy.x += ch == '\t' ? _tabSize : 0;
