@@ -16,5 +16,6 @@ int getFileSize(FILE *FP);
 char *allocateBuffer(int fileSize);
 void freeBuffer(char *buffer);
 void loadBuffer(char *buffer, FILE *FP, long fileSize);
+void startUp(int argc, char **argv);
 
 #endif // FILEHANDLER_H
