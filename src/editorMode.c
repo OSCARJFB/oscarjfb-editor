@@ -149,19 +149,17 @@ coordinates onEditCoordinates(coordinates xy, int sFlag, int ch, bufList *node)
 	switch (sFlag)
 	{
 	case ADD_FIRST_NODE:
-		xy.x = _leftMargin + 1;
+		xy.x = _leftMargin;
 		xy.y += ch == '\n' ? 1 : 0;
 		xy.x += ch == '\t' ? _tabSize : 0;
 		break;
 	case ADD_MIDDLE_NODE:
-		xy.x = ch == '\n' ? _leftMargin : node->ch == '\n' ? node->x + 1
-														   : node->x + 1;
+		xy.x = ch == '\n' ? _leftMargin : node->x + 1;
 		xy.y += ch == '\n' ? 1 : 0;
 		xy.x += ch == '\t' ? _tabSize : 0;
 		break;
 	case ADD_END_NODE:
-		xy.x = ch == '\n' ? _leftMargin : node->ch == '\n' ? node->x + 2
-														   : node->x + 2;
+		xy.x = ch == '\n' ? _leftMargin : node->x + 2;
 		xy.y += ch == '\n' ? 1 : 0;
 		xy.x += ch == '\t' ? _tabSize : 0;
 		break;
@@ -170,7 +168,7 @@ coordinates onEditCoordinates(coordinates xy, int sFlag, int ch, bufList *node)
 		xy.y = node->y;
 		break;
 	case DEL_AT_END:
-		xy.x = _leftMargin;
+		xy.x = _leftMargin ;
 		xy.y = 0;
 		break;
 	}
