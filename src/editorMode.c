@@ -48,6 +48,7 @@ bufList *createNodesFromBuffer(char *buffer, long fileSize)
 
 void save(bufList *head, int size, const char *fileName)
 {
+	FILE *fp = NULL; 
 	char *buffer = saveListToBuffer(head, size);
 	if (buffer == NULL)
 	{
@@ -56,20 +57,26 @@ void save(bufList *head, int size, const char *fileName)
 
 	if (fileName == NULL)
 	{
-		/* Ask for a new file name here! */
+		char *newName = newFileName(); 
+		if(newName == NULL)
+		{
+			return; 
+		}
+		fp = fopen(newName, "w");
 	}
-
-	FILE *fp = fopen(fileName, "w");
-	if (fp == NULL)
+	else
 	{
-		free(buffer);
-		buffer = NULL;
-		return;
+		fp = fopen(fileName, "w");
 	}
 
-	fprintf(fp, "%s", buffer);
-	fclose(fp);
+	if(fp != NULL)
+	{
+		fprintf(fp, "%s", buffer);
+		fclose(fp);
+		fp = NULL; 
+	}
 	free(buffer);
+	buffer = NULL;
 }
 
 char *saveListToBuffer(bufList *head, int size)
@@ -88,6 +95,19 @@ char *saveListToBuffer(bufList *head, int size)
 	buffer[size] = '\0';
 
 	return buffer;
+}
+
+char *newFileName(void)
+{
+	char *fileName = NULL;
+	int mult = 0; 
+	for(int ch = 0; ch != '\n'; ch = wgetch(stdscr))
+	{
+		fileName = realloc(fileName, sizeof(char) * (mult + 1));
+		fileName[mult++] = ch; 
+	}
+
+	return fileName; 
 }
 
 void deleteAllNodes(bufList *head)
