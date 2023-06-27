@@ -126,5 +126,7 @@ void startUp(int argc, char **argv)
 	bufList *head = createNodesFromBuffer(buffer, fileSize);
 	freeBuffer(buffer);
 
+
+	
 	editTextFile(head, argv[1]);
 }

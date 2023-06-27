@@ -9,10 +9,11 @@
 #include "editorMode.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include <stdbool.h>
 #include <ncurses.h>
-
-int _leftMargin = 0;
+	
+int _leftMargin = three;
 int _rightMargin = 0;
 int _tabSize = 6;
 int _copySize = 0;
@@ -58,11 +59,13 @@ void save(bufList *head, int size, const char *fileName)
 	if (fileName == NULL)
 	{
 		char *newName = newFileName(); 
-		if(newName == NULL)
+		if(newName != NULL)
 		{
-			return; 
+			// Need to memcpy the new filename, currently not working here filename will not get a new value. :)
+			fp = fopen(newName, "w");
+			free(newName);
+			newName = NULL; 
 		}
-		fp = fopen(newName, "w");
 	}
 	else
 	{
@@ -159,7 +162,7 @@ coordinates onEditCoordinates(coordinates xy, int sFlag, int ch, bufList *node)
 		xy.x += ch == '\t' ? _tabSize : 0;
 		break;
 	case ADD_END_NODE:
-		xy.x = ch == '\n' ? _leftMargin : node->x + 2;
+		xy.x = ch == '\n' ? _leftMargin : node->ch == '\n' ? _leftMargin + 1 : node->x + 2;
 		xy.y += ch == '\n' ? 1 : 0;
 		xy.x += ch == '\t' ? _tabSize : 0;
 		break;
@@ -315,6 +318,11 @@ coordinates getEndNodeCoordinates(bufList *head)
 	{
 		xy.x = head->x + 1;
 		xy.y = head->y;
+	}
+	else 
+	{
+		xy.x = _leftMargin; 
+		xy.y = 0; 
 	}
 
 	return xy;
@@ -623,17 +631,21 @@ dataCopied copy(dataCopied cpy_data, bufList *head, coordinates xy)
 	return cpy_data;
 }
 
+void updateViewPort(void)
+{
+
+}
+
 void editTextFile(bufList *head, const char *fileName)
 {
 	dataCopied cpy_data = {NULL, {0, 0}, {0, 0}, false, false};
+	coordinates xy = getEndNodeCoordinates(head); 
 	updateCoordinates(&head);
-	coordinates xy = getEndNodeCoordinates(head);
-	int size = printNodes(head);
-	bool is_running = true;
+	int size  = printNodes(head);
 
-	while (is_running)
+	for (int ch = 0, is_running = true; is_running ; ch = wgetch(stdscr))
 	{
-		int ch = wgetch(stdscr), mode = setMode(ch);
+		int mode = setMode(ch);
 		xy = moveArrowKeys(ch, xy);
 
 		switch (mode)
