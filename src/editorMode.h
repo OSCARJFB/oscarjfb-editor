@@ -87,6 +87,7 @@ char *saveCopiedText(bufList *head, coordinates cp_start, coordinates cp_end);
 void pasteCopiedlist(bufList **head, char *cpy_List, coordinates xy);
 void save(bufList *head, int size, const char *fileName);
 char *saveListToBuffer(bufList *head, int size);
+char *newFileName(void);
 void deleteAllNodes(bufList *head);
 void updateCoordinates(bufList **head);
 void setLeftMargin(bufList *head);

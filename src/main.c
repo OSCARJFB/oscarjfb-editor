@@ -10,25 +10,11 @@
 #include <stdlib.h>
 #include "curseSettings.h"
 #include "fileHandler.h"
-#include "editorMode.h"
 
 int main(int argc, char **argv)
 {
 	curseMode(true);
-
-	FILE *FP = getFileFromArg(argc, argv);
-	long fileSize = getFileSize(FP);
-	char *buffer = allocateBuffer(fileSize);
-	
-	loadBuffer(buffer, FP, fileSize);
-	bufList *head = createNodesFromBuffer(buffer, fileSize);
-	
-	freeBuffer(buffer);
-	closeFile(FP);
-	
-	editTextFile(head, argv[1]);
-	
+	startUp(argc, argv);	
 	curseMode(false);
-
 	return 0;
 }
