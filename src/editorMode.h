@@ -9,7 +9,11 @@
 #ifndef EDITORMODE_H
 #define EDITORMODE_H
 
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
 #include <stdbool.h>
+#include <ncurses.h>
 
 #define ESC_KEY 27
 #define NO_KEY -1
@@ -89,14 +93,14 @@ void save(bufList *head, int size, const char *fileName);
 char *saveListToBuffer(bufList *head, int size);
 char *newFileName(void);
 void deleteAllNodes(bufList *head);
-void updateCoordinates(bufList **head);
-void setLeftMargin(bufList *head);
-int printNodes(bufList *head);
+int updateCoordinatesInView(bufList **head);
+int countNewLines(bufList *head);
+void setLeftMargin(int newLines);
+int printNodes(bufList *head, int viewStart);
 int setMode(int ch);
 coordinates moveArrowKeys(int ch, coordinates xy);
 coordinates edit(bufList **head, coordinates xy, int ch);
 dataCopied copy(dataCopied cpy_data, bufList *head, coordinates xy);
 void editTextFile(bufList *head, const char *fileName);
-void TEST_LIST_LINKING(bufList *head);
 
 #endif // EDITORMODE_H

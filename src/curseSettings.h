@@ -10,6 +10,7 @@
 #define CURSESETTINGS_H
 
 #include <stdbool.h>
+#include <ncurses.h>
 
 void curseMode(bool isCurse);
 

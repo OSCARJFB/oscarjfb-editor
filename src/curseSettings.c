@@ -7,7 +7,6 @@
 */
 
 #include "curseSettings.h"
-#include <ncurses.h>
 
 void curseMode(bool isCurse)
 {

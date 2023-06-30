@@ -6,10 +6,7 @@
 	Copyright (c) 2023 Oscar Bergström
 */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdbool.h>
-#include "editorMode.h"
+#include "fileHandler.h"
 
 FILE *getFileFromArg(int argc, char **argv)
 {
