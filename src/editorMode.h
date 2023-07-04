@@ -38,27 +38,22 @@ typedef struct dataCopied
 	bool isStart, isEnd;
 } dataCopied;
 
-extern int _leftMargin;
-extern int _rightMargin;
-extern int _tabSize;
-extern int _copySize; 
-
 enum lineLimit
 {
-	ten = 10,
-	one_hundred = 100,
-	one_thousand = 1000,
-	ten_thousand = 10000,
-	hundred_thousand = 100000,
+	LIM_1 = 10,
+	LIM_2 = 100,
+	LIM_3 = 1000,
+	LIM_4 = 10000,
+	LIM_5 = 100000,
 };
 
 enum marginSize
 {
-	two = 2,
-	three = 3,
-	four = 4,
-	five = 5,
-	six = 6,
+	MARGIN_SPACE_2 = 2,
+	MARGIN_SPACE_3 = 3,
+	MARGIN_SPACE_4 = 4,
+	MARGIN_SPACE_5 = 5,
+	MARGIN_SPACE_6 = 6,
 };
 
 enum mode
@@ -79,6 +74,14 @@ enum state
 	DEL_AT_END = 4
 };
 
+extern int _leftMargin;
+extern int _rightMargin;
+extern int _tabSize;
+extern int _copySize;
+extern int _currentLine;
+extern int _viewStart;
+extern int _viewEnd;
+
 bufList *createNodesFromBuffer(char *buffer, long fileSize);
 bufList *createNewNode(int ch);
 coordinates onEditCoordinates(coordinates xy, int sFlag, int ch, bufList *last_node);
@@ -93,10 +96,10 @@ void save(bufList *head, int size, const char *fileName);
 char *saveListToBuffer(bufList *head, int size);
 char *newFileName(void);
 void deleteAllNodes(bufList *head);
-int updateCoordinatesInView(bufList **head);
+void updateCoordinatesInView(bufList **head);
 int countNewLines(bufList *head);
 void setLeftMargin(int newLines);
-int printNodes(bufList *head, int viewStart);
+int printNodes(bufList *head);
 int setMode(int ch);
 coordinates moveArrowKeys(int ch, coordinates xy);
 coordinates edit(bufList **head, coordinates xy, int ch);

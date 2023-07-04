@@ -7,11 +7,13 @@
 */
 
 #include "editorMode.h"
-	
-int _leftMargin = three;
+
+int _leftMargin = MARGIN_SPACE_3;
 int _rightMargin = 0;
 int _tabSize = 6;
 int _copySize = 0;
+int _viewStart = 0;
+int _viewEnd = 0;
 
 bufList *createNodesFromBuffer(char *buffer, long fileSize)
 {
@@ -38,13 +40,13 @@ bufList *createNodesFromBuffer(char *buffer, long fileSize)
 		++xy.x;
 	}
 
-	(void)updateCoordinatesInView(&head);
+	updateCoordinatesInView(&head);
 	return head;
 }
 
 void save(bufList *head, int size, const char *fileName)
 {
-	FILE *fp = NULL; 
+	FILE *fp = NULL;
 	char *buffer = saveListToBuffer(head, size);
 	if (buffer == NULL)
 	{
@@ -53,13 +55,13 @@ void save(bufList *head, int size, const char *fileName)
 
 	if (fileName == NULL)
 	{
-		char *newName = newFileName(); 
-		if(newName != NULL)
+		char *newName = newFileName();
+		if (newName != NULL)
 		{
 			// Need to memcpy the new filename, currently not working here filename will not get a new value. :)
 			fp = fopen(newName, "w");
 			free(newName);
-			newName = NULL; 
+			newName = NULL;
 		}
 	}
 	else
@@ -67,11 +69,11 @@ void save(bufList *head, int size, const char *fileName)
 		fp = fopen(fileName, "w");
 	}
 
-	if(fp != NULL)
+	if (fp != NULL)
 	{
 		fprintf(fp, "%s", buffer);
 		fclose(fp);
-		fp = NULL; 
+		fp = NULL;
 	}
 	free(buffer);
 	buffer = NULL;
@@ -98,14 +100,14 @@ char *saveListToBuffer(bufList *head, int size)
 char *newFileName(void)
 {
 	char *fileName = NULL;
-	int mult = 0; 
-	for(int ch = 0; ch != '\n'; ch = wgetch(stdscr))
+	int mult = 0;
+	for (int ch = 0; ch != '\n'; ch = wgetch(stdscr))
 	{
 		fileName = realloc(fileName, sizeof(char) * (mult + 1));
-		fileName[mult++] = ch; 
+		fileName[mult++] = ch;
 	}
 
-	return fileName; 
+	return fileName;
 }
 
 void deleteAllNodes(bufList *head)
@@ -157,7 +159,8 @@ coordinates onEditCoordinates(coordinates xy, int sFlag, int ch, bufList *node)
 		xy.x += ch == '\t' ? _tabSize : 0;
 		break;
 	case ADD_END_NODE:
-		xy.x = ch == '\n' ? _leftMargin : node->ch == '\n' ? _leftMargin + 1 : node->x + 2;
+		xy.x = ch == '\n' ? _leftMargin : node->ch == '\n' ? _leftMargin + 1
+														   : node->x + 2;
 		xy.y += ch == '\n' ? 1 : 0;
 		xy.x += ch == '\t' ? _tabSize : 0;
 		break;
@@ -166,7 +169,7 @@ coordinates onEditCoordinates(coordinates xy, int sFlag, int ch, bufList *node)
 		xy.y = node->y;
 		break;
 	case DEL_AT_END:
-		xy.x = _leftMargin ;
+		xy.x = _leftMargin;
 		xy.y = 0;
 		break;
 	}
@@ -201,7 +204,7 @@ coordinates addNode(bufList **head, int ch, coordinates xy)
 		}
 
 		last_node = last_node->next;
-		
+
 		if (last_node->x == xy.x && last_node->y == xy.y && last_node->prev != NULL)
 		{
 			last_node->prev->next = next_node;
@@ -314,33 +317,28 @@ coordinates getEndNodeCoordinates(bufList *head)
 		xy.x = head->x + 1;
 		xy.y = head->y;
 	}
-	else 
+	else
 	{
-		xy.x = _leftMargin; 
-		xy.y = 0; 
+		xy.x = _leftMargin;
+		xy.y = 0;
 	}
 
 	return xy;
 }
 
-int updateCoordinatesInView(bufList **head)
+void updateCoordinatesInView(bufList **head)
 {
 	if (*head == NULL)
 	{
-		return 0;
+		return;
 	}
 
-	int newLines = countNewLines(*head);
-	int viewStart = newLines - getmaxy(stdscr);
-
-	setLeftMargin(newLines);
-
-	int x = _leftMargin, y = 0, c_nl = 0;
+	int x = _leftMargin, y = 0, newLines = 0;
 	bufList *node = *head;
 	while (node != NULL)
 	{
-		c_nl += node->ch == '\n' ? 1 : 0; 
-		if(c_nl >= viewStart)
+		newLines += node->ch == '\n' ? 1 : 0; 
+		if(newLines >= _viewStart)
 		{ 
 			node->x = x;
 			node->y = y;
@@ -363,8 +361,6 @@ int updateCoordinatesInView(bufList **head)
 
 		node = node->next;
 	}
-
-	return viewStart; 
 }
 
 dataCopied getCopyStart(dataCopied cpy_data, coordinates xy)
@@ -502,34 +498,34 @@ int countNewLines(bufList *head)
 void setLeftMargin(int newlines)
 {
 	// Set margin depending on the amount of newlines
-	if (newlines < one_hundred)
+	if (newlines < LIM_1)
 	{
-		_leftMargin = three;
+		_leftMargin = MARGIN_SPACE_3;
 	}
-	else if (newlines < one_thousand)
+	else if (newlines < LIM_2)
 	{
-		_leftMargin = four;
+		_leftMargin = MARGIN_SPACE_4;
 	}
-	else if (newlines < ten_thousand)
+	else if (newlines < LIM_3)
 	{
-		_leftMargin = five;
+		_leftMargin = MARGIN_SPACE_5;
 	}
-	else if (newlines < hundred_thousand)
+	else if (newlines < LIM_4)
 	{
-		_leftMargin = six;
+		_leftMargin = MARGIN_SPACE_6;
 	}
 }
 
-int printNodes(bufList *head, int viewStart)
+int printNodes(bufList *head)
 {
-	int size = 0, newlines = 1;
+	int size = 0, lineNumber = 0;
 	bool nlFlag = true;
 
 	// We need to clear terminal screen (empty) if no characters exists.
 	if (head == NULL)
 	{
 		wclear(stdscr);
-		printw("%d:", newlines);
+		printw("%d:", lineNumber + 1);
 		wrefresh(stdscr);
 		return size;
 	}
@@ -538,30 +534,25 @@ int printNodes(bufList *head, int viewStart)
 	wclear(stdscr);
 	while (head != NULL)
 	{
-		if (nlFlag && newlines >= viewStart)
-		{
-			nlFlag = false;
-			printw("%d:", newlines);
-		}
-
 		if (head->ch == '\n')
 		{
 			nlFlag = true;
-			++newlines;
+			++lineNumber;
 		}
 
-		if(newlines >= viewStart)
+		if(lineNumber >= _viewStart)
 		{
+			if (nlFlag)
+			{
+				nlFlag = false;
+				printw("%d:", lineNumber + 1);
+			}
+
 			mvwaddch(stdscr, head->y, head->x, head->ch);
 		}
 
 		head = head->next;
 		++size;
-	}
-
-	if (nlFlag == true)
-	{
-		printw("%d:", newlines);
 	}
 
 	wrefresh(stdscr);
@@ -644,14 +635,32 @@ dataCopied copy(dataCopied cpy_data, bufList *head, coordinates xy)
 	return cpy_data;
 }
 
+void updateViewPort(coordinates xy, int ch, int mode)
+{
+	_viewEnd = getmaxy(stdscr); 
+
+	if(xy.y >= _viewEnd)
+	{
+		++_viewStart; 
+	}
+	else if(mode == EDIT && ch == '\n' && xy.y >= _viewEnd)
+	{
+		//++_viewStart;
+	}
+	else if(mode == EDIT && ch == KEY_BACKSPACE)
+	{
+		//--_viewStart;
+	}
+}
+
 void editTextFile(bufList *head, const char *fileName)
 {
 	dataCopied cpy_data = {NULL, {0, 0}, {0, 0}, false, false};
-	coordinates xy = getEndNodeCoordinates(head); 
-	int viewStart = updateCoordinatesInView(&head);
-	int size  = printNodes(head, viewStart);
+	coordinates xy = getEndNodeCoordinates(head);
+	updateCoordinatesInView(&head);
+	int size = printNodes(head);
 
-	for (int ch = 0, is_running = true; is_running ; ch = wgetch(stdscr))
+	for (int ch = 0, is_running = true; is_running; ch = wgetch(stdscr))
 	{
 		int mode = setMode(ch);
 		xy = moveArrowKeys(ch, xy);
@@ -675,8 +684,11 @@ void editTextFile(bufList *head, const char *fileName)
 			break;
 		}
 
-		viewStart = updateCoordinatesInView(&head);
-		size = printNodes(head, viewStart);
+		updateViewPort(xy, ch, mode);
+		int newLines = countNewLines(head);
+		setLeftMargin(newLines);
+		updateCoordinatesInView(&head);
+		size = printNodes(head);
 		wmove(stdscr, xy.y, xy.x);
 	}
 }
