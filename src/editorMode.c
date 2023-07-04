@@ -13,7 +13,6 @@ int _rightMargin = 0;
 int _tabSize = 6;
 int _copySize = 0;
 int _viewStart = 0;
-int _viewEnd = 0;
 
 bufList *createNodesFromBuffer(char *buffer, long fileSize)
 {
@@ -300,10 +299,11 @@ coordinates deleteNode(bufList **head, coordinates xy)
 
 coordinates getEndNodeCoordinates(bufList *head)
 {
+	updateCoordinatesInView(&head);
 	coordinates xy = {0, 0};
 
-	// Will find the last node and set its x and y value to be the cursor position.
-	while (head != NULL)
+	// Will find the last node in viewport and set its x and y value to be the cursor position.
+	for (int i = 0; head != NULL && i < getmaxy(stdscr); ++i)
 	{
 		if (head->next == NULL)
 		{
@@ -495,22 +495,24 @@ int countNewLines(bufList *head)
 	return newlines;
 }
 
-void setLeftMargin(int newlines)
+void setLeftMargin(bufList *head)
 {
+	int newLines = countNewLines(head);
+
 	// Set margin depending on the amount of newlines
-	if (newlines < LIM_1)
+	if (newLines < LIM_1)
 	{
 		_leftMargin = MARGIN_SPACE_3;
 	}
-	else if (newlines < LIM_2)
+	else if (newLines < LIM_2)
 	{
 		_leftMargin = MARGIN_SPACE_4;
 	}
-	else if (newlines < LIM_3)
+	else if (newLines < LIM_3)
 	{
 		_leftMargin = MARGIN_SPACE_5;
 	}
-	else if (newlines < LIM_4)
+	else if (newLines < LIM_4)
 	{
 		_leftMargin = MARGIN_SPACE_6;
 	}
@@ -635,30 +637,20 @@ dataCopied copy(dataCopied cpy_data, bufList *head, coordinates xy)
 	return cpy_data;
 }
 
-void updateViewPort(coordinates xy, int ch, int mode)
+void updateViewPort(coordinates xy)
 {
-	_viewEnd = getmaxy(stdscr); 
-
-	if(xy.y >= _viewEnd)
+	if(xy.y >= getmaxy(stdscr))
 	{
 		++_viewStart; 
 	}
-	else if(mode == EDIT && ch == '\n' && xy.y >= _viewEnd)
-	{
-		//++_viewStart;
-	}
-	else if(mode == EDIT && ch == KEY_BACKSPACE)
-	{
-		//--_viewStart;
-	}
 }
 
-void editTextFile(bufList *head, const char *fileName)
+void editTextFile(bufList *head, const char *fileName, int fileSize)
 {
 	dataCopied cpy_data = {NULL, {0, 0}, {0, 0}, false, false};
 	coordinates xy = getEndNodeCoordinates(head);
 	updateCoordinatesInView(&head);
-	int size = printNodes(head);
+	(void)printNodes(head);
 
 	for (int ch = 0, is_running = true; is_running; ch = wgetch(stdscr))
 	{
@@ -671,7 +663,7 @@ void editTextFile(bufList *head, const char *fileName)
 			xy = edit(&head, xy, ch);
 			break;
 		case SAVE:
-			save(head, size, fileName);
+			save(head, fileSize, fileName);
 			break;
 		case COPY:
 			cpy_data = copy(cpy_data, head, xy);
@@ -684,11 +676,10 @@ void editTextFile(bufList *head, const char *fileName)
 			break;
 		}
 
-		updateViewPort(xy, ch, mode);
-		int newLines = countNewLines(head);
-		setLeftMargin(newLines);
+		updateViewPort(xy);
+		setLeftMargin(head);
 		updateCoordinatesInView(&head);
-		size = printNodes(head);
+		fileSize = printNodes(head);
 		wmove(stdscr, xy.y, xy.x);
 	}
 }

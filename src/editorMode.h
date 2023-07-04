@@ -80,7 +80,6 @@ extern int _tabSize;
 extern int _copySize;
 extern int _currentLine;
 extern int _viewStart;
-extern int _viewEnd;
 
 bufList *createNodesFromBuffer(char *buffer, long fileSize);
 bufList *createNewNode(int ch);
@@ -98,12 +97,12 @@ char *newFileName(void);
 void deleteAllNodes(bufList *head);
 void updateCoordinatesInView(bufList **head);
 int countNewLines(bufList *head);
-void setLeftMargin(int newLines);
+void setLeftMargin(bufList *head);
 int printNodes(bufList *head);
 int setMode(int ch);
 coordinates moveArrowKeys(int ch, coordinates xy);
 coordinates edit(bufList **head, coordinates xy, int ch);
 dataCopied copy(dataCopied cpy_data, bufList *head, coordinates xy);
-void editTextFile(bufList *head, const char *fileName);
+void editTextFile(bufList *head, const char *fileName, int fileSize);
 
 #endif // EDITORMODE_H

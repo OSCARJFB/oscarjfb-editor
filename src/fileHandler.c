@@ -125,5 +125,5 @@ void startUp(int argc, char **argv)
 
 
 	
-	editTextFile(head, argv[1]);
+	editTextFile(head, argv[1], fileSize);
 }
