@@ -357,12 +357,6 @@ void updateCoordinatesInView(bufList **head)
 	int x = _leftMargin, y = 0, newLines = 0;
 	for (bufList *node = *head; node != NULL; node = node->next)
 	{
-		newLines += node->ch == '\n' ? 1 : 0;
-		if (newLines == getmaxy(stdscr))
-		{
-			break;
-		}
-
 		if (newLines >= _viewStart)
 		{
 			node->x = x;
@@ -382,6 +376,12 @@ void updateCoordinatesInView(bufList **head)
 				x = _leftMargin;
 				++y;
 			}
+		}
+		
+		newLines += node->ch == '\n' ? 1 : 0;
+		if (newLines == getmaxy(stdscr))
+		{
+			break;
 		}
 	}
 }
@@ -543,7 +543,7 @@ void setLeftMargin(bufList *head)
 
 void printNodes(bufList *head)
 {
-	int size = 0, lineNumber = 0;
+	int lineNumber = 0;
 	bool nlFlag = true;
 
 	// We need to clear terminal screen (empty) if no characters exists.
@@ -559,12 +559,6 @@ void printNodes(bufList *head)
 	wclear(stdscr);
 	for (bufList *node = head; node != NULL; node = node->next)
 	{
-		if (node->ch == '\n')
-		{
-			nlFlag = true;
-			++lineNumber;
-		}
-
 		if (lineNumber >= _viewStart)
 		{
 			if (nlFlag)
@@ -575,7 +569,23 @@ void printNodes(bufList *head)
 
 			mvwaddch(stdscr, node->y, node->x, node->ch);
 		}
-		++size;
+		
+		if (node->ch == '\n')
+		{
+			nlFlag = true;
+			++lineNumber;
+		}
+
+		if(lineNumber >= getmaxy(stdscr) - 1)
+		{
+			break;
+		}
+	}
+
+	if (nlFlag)
+	{
+		nlFlag = false;
+		printw("%d:", lineNumber + 1);
 	}
 	wrefresh(stdscr);
 }
@@ -656,12 +666,14 @@ dataCopied copy(dataCopied cpy_data, bufList *head, coordinates xy)
 	return cpy_data;
 }
 
-void updateViewPort(coordinates xy)
+coordinates updateViewPort(coordinates xy)
 {
-	if (xy.y >= getmaxy(stdscr))
+	if (xy.y > getmaxy(stdscr))
 	{
 		++_viewStart;
 	}
+
+	return xy; 
 }
 
 void editTextFile(bufList *head, char *fileName)
@@ -694,7 +706,7 @@ void editTextFile(bufList *head, char *fileName)
 			break;
 		}
 
-		updateViewPort(xy);
+		xy = updateViewPort(xy);
 		setLeftMargin(head);
 		updateCoordinatesInView(&head);
 		printNodes(head);
