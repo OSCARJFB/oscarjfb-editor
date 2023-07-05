@@ -91,18 +91,19 @@ dataCopied getCopyStart(dataCopied cp_data, coordinates xy);
 dataCopied getCopyEnd(dataCopied cp_data, coordinates xy);
 char *saveCopiedText(bufList *head, coordinates cp_start, coordinates cp_end);
 void pasteCopiedlist(bufList **head, char *cpy_List, coordinates xy);
-void save(bufList *head, int size, const char *fileName);
+void save(bufList *head, char *fileName);
+int getFileSizeFromList(bufList *head);
 char *saveListToBuffer(bufList *head, int size);
 char *newFileName(void);
 void deleteAllNodes(bufList *head);
 void updateCoordinatesInView(bufList **head);
 int countNewLines(bufList *head);
 void setLeftMargin(bufList *head);
-int printNodes(bufList *head);
+void printNodes(bufList *head);
 int setMode(int ch);
 coordinates moveArrowKeys(int ch, coordinates xy);
 coordinates edit(bufList **head, coordinates xy, int ch);
 dataCopied copy(dataCopied cpy_data, bufList *head, coordinates xy);
-void editTextFile(bufList *head, const char *fileName, int fileSize);
+void editTextFile(bufList *head, char *fileName);
 
 #endif // EDITORMODE_H

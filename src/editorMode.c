@@ -43,10 +43,26 @@ bufList *createNodesFromBuffer(char *buffer, long fileSize)
 	return head;
 }
 
-void save(bufList *head, int size, const char *fileName)
+int getFileSizeFromList(bufList *head)
+{
+	int fileSize = 0;
+	for (int i = 0; head != NULL; ++i)
+	{
+		head = head->next;
+		if (head->next == NULL)
+		{
+			fileSize = i + 1;
+			break;
+		}
+	}
+
+	return fileSize;
+}
+
+void save(bufList *head, char *fileName)
 {
 	FILE *fp = NULL;
-	char *buffer = saveListToBuffer(head, size);
+	char *buffer = saveListToBuffer(head, getFileSizeFromList(head));
 	if (buffer == NULL)
 	{
 		return;
@@ -78,20 +94,25 @@ void save(bufList *head, int size, const char *fileName)
 	buffer = NULL;
 }
 
-char *saveListToBuffer(bufList *head, int size)
+char *saveListToBuffer(bufList *head, int fileSize)
 {
-	char *buffer = malloc((size * sizeof(char)) + 1);
+	if (fileSize == 0)
+	{
+		return NULL;
+	}
+
+	char *buffer = malloc((fileSize * sizeof(char)) + 1);
 	if (buffer == NULL)
 	{
 		return NULL;
 	}
 
-	for (int i = 0; head != NULL && i < size; head = head->next)
+	for (int i = 0; head != NULL && i < fileSize; head = head->next)
 	{
 		buffer[i++] = head->ch;
 	}
 
-	buffer[size] = '\0';
+	buffer[fileSize] = '\0';
 
 	return buffer;
 }
@@ -189,7 +210,7 @@ coordinates addNode(bufList **head, int ch, coordinates xy)
 	// Create a new node and add base values, depending on parameter input.
 	bufList *next_node = createNewNode(ch), *last_node = *head, *prev_node = NULL;
 
-	// Find the last node in the list, for each step check if ch was added in bounderies.
+	// Find the last node in the list, for each step check if ch was added in between list bounderies.
 	while (last_node->next != NULL)
 	{
 		if (last_node->x == xy.x && last_node->y == xy.y && last_node->prev == NULL)
@@ -334,12 +355,16 @@ void updateCoordinatesInView(bufList **head)
 	}
 
 	int x = _leftMargin, y = 0, newLines = 0;
-	bufList *node = *head;
-	while (node != NULL)
+	for (bufList *node = *head; node != NULL; node = node->next)
 	{
-		newLines += node->ch == '\n' ? 1 : 0; 
-		if(newLines >= _viewStart)
-		{ 
+		newLines += node->ch == '\n' ? 1 : 0;
+		if (newLines == getmaxy(stdscr))
+		{
+			break;
+		}
+
+		if (newLines >= _viewStart)
+		{
 			node->x = x;
 			node->y = y;
 
@@ -358,8 +383,6 @@ void updateCoordinatesInView(bufList **head)
 				++y;
 			}
 		}
-
-		node = node->next;
 	}
 }
 
@@ -518,7 +541,7 @@ void setLeftMargin(bufList *head)
 	}
 }
 
-int printNodes(bufList *head)
+void printNodes(bufList *head)
 {
 	int size = 0, lineNumber = 0;
 	bool nlFlag = true;
@@ -529,20 +552,20 @@ int printNodes(bufList *head)
 		wclear(stdscr);
 		printw("%d:", lineNumber + 1);
 		wrefresh(stdscr);
-		return size;
+		return;
 	}
 
 	// Print the nodes at x and y position.
 	wclear(stdscr);
-	while (head != NULL)
+	for (bufList *node = head; node != NULL; node = node->next)
 	{
-		if (head->ch == '\n')
+		if (node->ch == '\n')
 		{
 			nlFlag = true;
 			++lineNumber;
 		}
 
-		if(lineNumber >= _viewStart)
+		if (lineNumber >= _viewStart)
 		{
 			if (nlFlag)
 			{
@@ -550,15 +573,11 @@ int printNodes(bufList *head)
 				printw("%d:", lineNumber + 1);
 			}
 
-			mvwaddch(stdscr, head->y, head->x, head->ch);
+			mvwaddch(stdscr, node->y, node->x, node->ch);
 		}
-
-		head = head->next;
 		++size;
 	}
-
 	wrefresh(stdscr);
-	return size;
 }
 
 int setMode(int ch)
@@ -639,18 +658,17 @@ dataCopied copy(dataCopied cpy_data, bufList *head, coordinates xy)
 
 void updateViewPort(coordinates xy)
 {
-	if(xy.y >= getmaxy(stdscr))
+	if (xy.y >= getmaxy(stdscr))
 	{
-		++_viewStart; 
+		++_viewStart;
 	}
 }
 
-void editTextFile(bufList *head, const char *fileName, int fileSize)
+void editTextFile(bufList *head, char *fileName)
 {
 	dataCopied cpy_data = {NULL, {0, 0}, {0, 0}, false, false};
 	coordinates xy = getEndNodeCoordinates(head);
-	updateCoordinatesInView(&head);
-	(void)printNodes(head);
+	printNodes(head);
 
 	for (int ch = 0, is_running = true; is_running; ch = wgetch(stdscr))
 	{
@@ -663,7 +681,7 @@ void editTextFile(bufList *head, const char *fileName, int fileSize)
 			xy = edit(&head, xy, ch);
 			break;
 		case SAVE:
-			save(head, fileSize, fileName);
+			save(head, fileName);
 			break;
 		case COPY:
 			cpy_data = copy(cpy_data, head, xy);
@@ -679,7 +697,7 @@ void editTextFile(bufList *head, const char *fileName, int fileSize)
 		updateViewPort(xy);
 		setLeftMargin(head);
 		updateCoordinatesInView(&head);
-		fileSize = printNodes(head);
+		printNodes(head);
 		wmove(stdscr, xy.y, xy.x);
 	}
 }
