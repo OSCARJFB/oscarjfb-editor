@@ -6,10 +6,7 @@
 	Copyright (c) 2023 Oscar Bergström
 */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdbool.h>
-#include "editorMode.h"
+#include "fileHandler.h"
 
 FILE *getFileFromArg(int argc, char **argv)
 {
@@ -125,8 +122,5 @@ void startUp(int argc, char **argv)
 	// Load the buffer into a linked list, then free the buffer. 
 	bufList *head = createNodesFromBuffer(buffer, fileSize);
 	freeBuffer(buffer);
-
-
-	
 	editTextFile(head, argv[1]);
 }

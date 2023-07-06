@@ -9,7 +9,11 @@
 #ifndef EDITORMODE_H
 #define EDITORMODE_H
 
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
 #include <stdbool.h>
+#include <ncurses.h>
 
 #define ESC_KEY 27
 #define NO_KEY -1
@@ -34,27 +38,22 @@ typedef struct dataCopied
 	bool isStart, isEnd;
 } dataCopied;
 
-extern int _leftMargin;
-extern int _rightMargin;
-extern int _tabSize;
-extern int _copySize; 
-
 enum lineLimit
 {
-	ten = 10,
-	one_hundred = 100,
-	one_thousand = 1000,
-	ten_thousand = 10000,
-	hundred_thousand = 100000,
+	LIM_1 = 10,
+	LIM_2 = 100,
+	LIM_3 = 1000,
+	LIM_4 = 10000,
+	LIM_5 = 100000,
 };
 
 enum marginSize
 {
-	two = 2,
-	three = 3,
-	four = 4,
-	five = 5,
-	six = 6,
+	MARGIN_SPACE_2 = 2,
+	MARGIN_SPACE_3 = 3,
+	MARGIN_SPACE_4 = 4,
+	MARGIN_SPACE_5 = 5,
+	MARGIN_SPACE_6 = 6,
 };
 
 enum mode
@@ -75,6 +74,13 @@ enum state
 	DEL_AT_END = 4
 };
 
+extern int _leftMargin;
+extern int _rightMargin;
+extern int _tabSize;
+extern int _copySize;
+extern int _currentLine;
+extern int _viewStart;
+
 bufList *createNodesFromBuffer(char *buffer, long fileSize);
 bufList *createNewNode(int ch);
 coordinates onEditCoordinates(coordinates xy, int sFlag, int ch, bufList *last_node);
@@ -85,18 +91,19 @@ dataCopied getCopyStart(dataCopied cp_data, coordinates xy);
 dataCopied getCopyEnd(dataCopied cp_data, coordinates xy);
 char *saveCopiedText(bufList *head, coordinates cp_start, coordinates cp_end);
 void pasteCopiedlist(bufList **head, char *cpy_List, coordinates xy);
-void save(bufList *head, int size, const char *fileName);
+void save(bufList *head, char *fileName);
+int getFileSizeFromList(bufList *head);
 char *saveListToBuffer(bufList *head, int size);
 char *newFileName(void);
 void deleteAllNodes(bufList *head);
-void updateCoordinates(bufList **head);
+void updateCoordinatesInView(bufList **head);
+int countNewLines(bufList *head);
 void setLeftMargin(bufList *head);
-int printNodes(bufList *head);
+void printNodes(bufList *head);
 int setMode(int ch);
 coordinates moveArrowKeys(int ch, coordinates xy);
 coordinates edit(bufList **head, coordinates xy, int ch);
 dataCopied copy(dataCopied cpy_data, bufList *head, coordinates xy);
-void editTextFile(bufList *head, const char *fileName);
-void TEST_LIST_LINKING(bufList *head);
+void editTextFile(bufList *head, char *fileName);
 
 #endif // EDITORMODE_H

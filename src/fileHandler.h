@@ -9,6 +9,11 @@
 #ifndef FILEHANDLER_H
 #define FILEHANDLER_H
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include "editorMode.h"
+
 FILE *getFileFromArg(int argc, char **argv);
 FILE *getFile(const char *path);
 void closeFile(FILE *FP);
