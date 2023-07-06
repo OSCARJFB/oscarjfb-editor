@@ -379,7 +379,7 @@ void updateCoordinatesInView(bufList **head)
 		}
 		
 		newLines += node->ch == '\n' ? 1 : 0;
-		if (newLines == getmaxy(stdscr))
+		if (newLines >= getmaxy(stdscr) + _viewStart)
 		{
 			break;
 		}
@@ -576,17 +576,17 @@ void printNodes(bufList *head)
 			++lineNumber;
 		}
 
-		if(lineNumber >= getmaxy(stdscr) - 1)
+		if(lineNumber >= getmaxy(stdscr) + _viewStart)
 		{
 			break;
 		}
 	}
 
-	if (nlFlag)
-	{
-		nlFlag = false;
-		printw("%d:", lineNumber + 1);
-	}
+	//if (nlFlag)
+	//{
+	//	nlFlag = false;
+	//	printw("%d:", lineNumber + 1);
+	//}
 	wrefresh(stdscr);
 }
 
@@ -666,14 +666,17 @@ dataCopied copy(dataCopied cpy_data, bufList *head, coordinates xy)
 	return cpy_data;
 }
 
-coordinates updateViewPort(coordinates xy)
+void updateViewPort(coordinates xy, int ch)
 {
-	if (xy.y > getmaxy(stdscr))
+	if (xy.y > getmaxy(stdscr) && (ch == '\n' || ch == KEY_DOWN))
 	{
 		++_viewStart;
 	}
 
-	return xy; 
+	if (xy.y == 0 && _viewStart > 0 && (ch == KEY_BACKSPACE || ch == KEY_UP))
+	{
+		--_viewStart;
+	}
 }
 
 void editTextFile(bufList *head, char *fileName)
@@ -706,7 +709,7 @@ void editTextFile(bufList *head, char *fileName)
 			break;
 		}
 
-		xy = updateViewPort(xy);
+		updateViewPort(xy, ch);
 		setLeftMargin(head);
 		updateCoordinatesInView(&head);
 		printNodes(head);
