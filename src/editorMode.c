@@ -417,11 +417,18 @@ dataCopied getCopyEnd(dataCopied cpy_data, coordinates xy)
 	return cpy_data;
 }
 
-char *saveCopiedText(bufList *head, coordinates cpy_start, coordinates cp_end)
+char *saveCopiedText(bufList *head, coordinates cpy_start, coordinates cpy_end)
 {
 	char *cpy_List = NULL;
 	int i = 0;
 	bool start_found = false;
+
+	if(cpy_start.y > cpy_end.y || (cpy_start.y == cpy_end.y && cpy_start.x > cpy_end.x))
+	{	
+		coordinates temp = cpy_start; 
+		cpy_start = cpy_end; 
+		cpy_end = temp;
+	}
 
 	while (head != NULL)
 	{
@@ -446,7 +453,7 @@ char *saveCopiedText(bufList *head, coordinates cpy_start, coordinates cp_end)
 		}
 
 		// If true end of list is found.
-		if (head->x == cp_end.x && head->y == cp_end.y)
+		if (head->x == cpy_end.x && head->y == cpy_end.y)
 		{
 			_copySize = i;
 			break;
@@ -582,11 +589,11 @@ void printNodes(bufList *head)
 		}
 	}
 
-	//if (nlFlag)
-	//{
-	//	nlFlag = false;
-	//	printw("%d:", lineNumber + 1);
-	//}
+	if (nlFlag)
+	{
+		nlFlag = false;
+		printw("%d:", lineNumber + 1);
+	}
 	wrefresh(stdscr);
 }
 
@@ -653,6 +660,7 @@ dataCopied copy(dataCopied cpy_data, bufList *head, coordinates xy)
 	if (cpy_data.cpy_List != NULL)
 	{
 		free(cpy_data.cpy_List);
+		cpy_data.cpy_List = NULL; 
 	}
 
 	cpy_data = getCopyStart(cpy_data, xy);
@@ -668,7 +676,7 @@ dataCopied copy(dataCopied cpy_data, bufList *head, coordinates xy)
 
 void updateViewPort(coordinates xy, int ch)
 {
-	if (xy.y > getmaxy(stdscr) && (ch == '\n' || ch == KEY_DOWN))
+	if (xy.y >= getmaxy(stdscr) && (ch == '\n' || ch == KEY_DOWN))
 	{
 		++_viewStart;
 	}
