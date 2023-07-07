@@ -423,13 +423,11 @@ char *saveCopiedText(bufList *head, coordinates cpy_start, coordinates cpy_end)
 	int i = 0;
 	bool start_found = false;
 
-	if(cpy_start.y > cpy_end.y)
+	if(cpy_start.y > cpy_end.y || (cpy_start.y == cpy_end.y && cpy_start.x > cpy_end.x))
 	{	
+		coordinates temp = cpy_start; 
 		cpy_start = cpy_end; 
-	}
-	else if(cpy_start.x > cpy_end.x)
-	{
-		cpy_start = cpy_end; 
+		cpy_end = temp;
 	}
 
 	while (head != NULL)
@@ -589,6 +587,12 @@ void printNodes(bufList *head)
 		{
 			break;
 		}
+	}
+
+	if (nlFlag)
+	{
+		nlFlag = false;
+		printw("%d:", lineNumber + 1);
 	}
 	wrefresh(stdscr);
 }
