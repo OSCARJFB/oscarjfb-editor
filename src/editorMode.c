@@ -71,18 +71,17 @@ void save(bufList *head, char *fileName)
 	if (fileName == NULL)
 	{
 		char *newName = newFileName();
-		if (newName != NULL)
+		if (newName == NULL)
 		{
-			// Need to memcpy the new filename, currently not working here filename will not get a new value. :)
-			fp = fopen(newName, "w");
-			free(newName);
-			newName = NULL;
+			free(buffer);
+			buffer = NULL;
+			return; 
 		}
+		
+		fileName = newName;
 	}
-	else
-	{
-		fp = fopen(fileName, "w");
-	}
+
+	fp = fopen(fileName, "w");
 
 	if (fp != NULL)
 	{
@@ -591,9 +590,9 @@ void printNodes(bufList *head)
 
 	if (nlFlag)
 	{
-		nlFlag = false;
 		printw("%d:", lineNumber + 1);
 	}
+
 	wrefresh(stdscr);
 }
 
@@ -681,7 +680,7 @@ void updateViewPort(coordinates xy, int ch)
 		++_viewStart;
 	}
 
-	if (xy.y == 0 && _viewStart > 0 && (ch == KEY_BACKSPACE || ch == KEY_UP))
+	if (xy.y == 0 && _viewStart > 0 && ch == KEY_UP)
 	{
 		--_viewStart;
 	}
